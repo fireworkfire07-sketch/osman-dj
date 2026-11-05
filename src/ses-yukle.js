@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// Eski kayıtları (tarayıcı stüdyosundan indirilen ses/video) YouTube'a "ses + kapak" videosu olarak yükler.
+// Eski kayıtları (tarayıcı stüdyosundan indirilen PRO KLİP / video / ses) YouTube'a yükler.
+// Görüntülü kayıt kendi görüntüsüyle, sadece ses olan kayıt kanal kapağıyla videoya çevrilir.
 // Dosyaları out/ses/ klasörüne koy →  node src/ses-yukle.js        (hepsini hazırla + planla + yükle)
 //                                      node src/ses-yukle.js --dry  (sadece listele)
 //                                      node src/ses-yukle.js --now  (planlamadan, hemen özel olarak yükle)
@@ -32,11 +33,22 @@ function duration(f) {
   try { return +execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f]).toString().trim() || 0; }
   catch { return 0; }
 }
+function hasVideo(f) {
+  try { return /video/.test(execFileSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=codec_type', '-of', 'csv=p=0', f]).toString()); }
+  catch { return false; }
+}
+// aynı kaydın birden çok sürümü varsa en iyisini seç: PRO_KLIP > ham video > ses
+function pickBest(list) {
+  const rank = f => /_pro_klip\./i.test(f) ? 3 : /_ham\./i.test(f) ? 2 : 1, key = f => path.basename(f).replace(EXT, '').replace(/_(ses|ham|pro_klip)$/i, '');
+  const best = new Map();
+  for (const f of list) { const k = key(f), b = best.get(k); if (!b || rank(f) > rank(b)) best.set(k, f); }
+  return [...best.values()].sort();
+}
 const hms = s => { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); return h ? `${h} sa ${m} dk` : `${m} dk`; };
 
 // dosya adından okunur başlık: OsmanDJ_Psytrance_2026-11-04_ses.webm → Psytrance
 function niceName(file) {
-  let n = path.basename(file).replace(EXT, '').replace(/^osman_?dj_?/i, '').replace(/_(ses|ham|pro_klip)$/i, '');
+  let n = path.basename(file).replace(EXT, '').replace(/^osman_?dj_?/i, '').replace(/_(ses|ham|pro_klip)$/i, '').replace(/_\d{5,}(?=_|$)/g, '');
   n = n.replace(/\d{4}[-_.]\d{2}[-_.]\d{2}([T_ -]?\d{2}[-_.:]?\d{2}([-_.:]?\d{2})?)?/g, '').replace(/[_-]+/g, ' ').replace(/\b\d{5,}\b/g, '').replace(/\s+/g, ' ').trim();
   return n || 'Canlı Set';
 }
@@ -79,6 +91,7 @@ function meta(title, no, dur) {
 (async () => {
   fs.mkdirSync(DONE, { recursive: true });
   const files = fs.readdirSync(IN).filter(f => EXT.test(f) && !f.startsWith('_')).sort().map(f => path.join(IN, f));
+  const chosen = pickBest(files);
   if (!files.length) { console.log(`📂 out/ses/ klasöründe kayıt yok. Dosyaları oraya kopyala, sonra tekrar çalıştır.`); return; }
   const fam = fontFam();
   const slots = (cfg.production && cfg.production.publishSlots && cfg.production.publishSlots.length) ? cfg.production.publishSlots : ['20:00'];
@@ -90,14 +103,15 @@ function meta(title, no, dur) {
   const nextSlot = () => { let best = null; for (const sl of slots) { const t = nextLocalTime(sl, tz, cursor); if (!best || t < best) best = t; } cursor = new Date(best.getTime() + 60e3); return best; };
   const prevNo = fs.readdirSync(DONE).filter(f => f.endsWith('.json')).length;
 
-  console.log(`🎙 ${files.length} kayıt bulundu`);
+  console.log(`🎙 ${chosen.length} kayıt bulundu` + (chosen.length < files.length ? ` (${files.length - chosen.length} kopya sürüm atlandı, en iyisi seçildi)` : ''));
   let no = prevNo;
-  for (const f of files) {
+  for (const f of chosen) {
+    const vid = hasVideo(f);
     const dur = duration(f);
     no++;
     const title = niceName(f);
     const when = arg('--now') ? undefined : nextSlot();
-    console.log(`\n#${no} ${path.basename(f)} · ${hms(dur)} → "${title}"${when ? ' · yayın ' + when.toLocaleString('tr-TR', { timeZone: tz }) : ' · hemen (özel)'}`);
+    console.log(`\n#${no} ${path.basename(f)} · ${hms(dur)}${vid ? ' · 🎬 kendi görüntüsüyle' : ' · 🖼 kapak + ses'} → "${title}"${when ? ' · yayın ' + when.toLocaleString('tr-TR', { timeZone: tz }) : ' · hemen (özel)'}`);
     if (arg('--dry')) continue;
     if (dur < 60) { console.log('⏸ 1 dakikadan kısa veya okunamadı, atlandı'); no--; continue; }
     const base = path.join(IN, `_kayit_${String(no).padStart(3, '0')}`);
@@ -105,14 +119,19 @@ function meta(title, no, dur) {
     try {
       cover(jpg, title, no, dur, fam);
       console.log('🎚 ses ayarlanıyor ve video hazırlanıyor (kayıt uzunluğuna göre birkaç dakika)...');
-      execFileSync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', '-loop', '1', '-framerate', '1', '-i', jpg, '-i', f,
-        '-map', '0:v', '-map', '1:a:0', '-af', 'loudnorm=I=-14:TP=-1.5:LRA=11,aresample=48000',
-        '-c:v', 'libx264', '-preset', 'veryfast', '-tune', 'stillimage', '-r', '1', '-g', '10', '-pix_fmt', 'yuv420p',
-        '-c:a', 'aac', '-b:a', '320k', '-shortest', '-movflags', '+faststart', mp4], { stdio: 'inherit' });
+      const AF = 'loudnorm=I=-14:TP=-1.5:LRA=11,aresample=48000';
+      const args = vid
+        ? ['-y', '-hide_banner', '-loglevel', 'error', '-i', f, '-map', '0:v:0', '-map', '0:a:0', '-af', AF,
+           '-vf', 'scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2,fps=30',
+           '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '21', '-pix_fmt', 'yuv420p']
+        : ['-y', '-hide_banner', '-loglevel', 'error', '-loop', '1', '-framerate', '1', '-i', jpg, '-i', f, '-map', '0:v', '-map', '1:a:0', '-af', AF,
+           '-c:v', 'libx264', '-preset', 'veryfast', '-tune', 'stillimage', '-r', '1', '-g', '10', '-pix_fmt', 'yuv420p', '-shortest'];
+      execFileSync('ffmpeg', [...args, '-c:a', 'aac', '-b:a', '320k', '-movflags', '+faststart', mp4], { stdio: 'inherit' });
       const r = await uploadVideo({ file: mp4, meta: meta(title, no, dur), privacy: 'private', publishAt: when && when.toISOString(), thumb: jpg,
         playlistId: cfg.upload && cfg.upload.playlistId, log: m => process.stdout.write('\r' + m + '   ') });
       fs.writeFileSync(path.join(DONE, path.basename(f) + '.json'), JSON.stringify({ no, file: path.basename(f), title, dur, youtube: r.url, publishAt: when && when.toISOString() }, null, 2));
-      fs.renameSync(f, path.join(DONE, path.basename(f)));
+      const k = path.basename(f).replace(EXT, '').replace(/_(ses|ham|pro_klip)$/i, '');
+      for (const g of files) if (path.basename(g).replace(EXT, '').replace(/_(ses|ham|pro_klip)$/i, '') === k) fs.renameSync(g, path.join(DONE, path.basename(g)));
       fs.rmSync(mp4, { force: true });
       console.log(`\n🎉 ${r.url}`);
       try { await require('./notify').send(`🎙 Eski kayıt yüklendi: <b>${title}</b> (${hms(dur)})\n${r.url}`); } catch {}
