@@ -22,6 +22,17 @@ for s in c['sets'][-10:]: print(f\"      #{s['no']:04d} {s['name']} · {s['progr
   guncelle)   git pull -q && install -m 755 scripts/osmandj /usr/local/bin/osmandj && docker compose build -q && docker compose up -d && echo "✅ güncellendi" ;;
   yukle)      docker compose run --rm studio node src/upload-pending.js "${@:2}" ;;
   bagla)      docker compose run --rm --network host studio node src/auth.js ;;
+  youtube)
+    read -p "Google OAuth Client ID: " A; read -p "Google OAuth Client Secret: " B
+    A=$(echo "$A"|tr -d '[:space:]'); B=$(echo "$B"|tr -d '[:space:]')
+    sed -i '/^YT_CLIENT_ID=/d;/^YT_CLIENT_SECRET=/d' .env; printf 'YT_CLIENT_ID=%s\nYT_CLIENT_SECRET=%s\n' "$A" "$B" >> .env
+    echo "✅ kaydedildi. Şimdi çıkan linki KENDİ bilgisayarındaki tarayıcıda aç ve kanal hesabınla izin ver."
+    echo "   (Bu SSH oturumunu  ssh -L 8085:127.0.0.1:8085 root@IP  ile açmış olman gerekir)"
+    docker compose run --rm --network host studio node src/auth.js && docker compose up -d --force-recreate >/dev/null 2>&1 && echo "📺 YouTube bağlandı. Biriken setler için:  osmandj yukle" ;;
+  yayin)
+    read -s -p "YouTube yayın anahtarı: " K; echo; K=$(echo "$K"|tr -d '[:space:]')
+    sed -i '/^YT_STREAM_KEY=/d' .env; echo "YT_STREAM_KEY=$K" >> .env
+    docker compose up -d --force-recreate radyo >/dev/null 2>&1 && echo "📻 7/24 radyo başlıyor:  osmandj radyo-log" ;;
   arsiv)      ls -1 out/arsiv | grep -v -E 'katalog|index' ;;
   rapor)      docker compose exec -T studio node src/notify.js ;;
   telegram)   read -p "Telegram bot token: " A; read -p "Telegram chat id: " B; sed -i '/^TELEGRAM_BOT_TOKEN=/d;/^TELEGRAM_CHAT_ID=/d' .env; printf 'TELEGRAM_BOT_TOKEN=%s\nTELEGRAM_CHAT_ID=%s\n' "$(echo $A|tr -d '[:space:]')" "$(echo $B|tr -d '[:space:]')" >> .env; docker compose up -d --force-recreate >/dev/null 2>&1; sleep 3; docker compose exec -T studio node src/notify.js ;;
@@ -33,5 +44,5 @@ for s in c['sets'][-10:]: print(f\"      #{s['no']:04d} {s['name']} · {s['progr
   runner-log) docker compose -f runners.compose.yml -p osmandj-runners logs -f --tail 30 ;;
   dur)        docker compose stop && echo "⏸ durdu" ;;
   basla)      docker compose up -d && echo "▶ çalışıyor" ;;
-  *) echo "kullanım: osmandj [durum|rapor|telegram|token|log|radyo-log|guncelle|yukle|bagla|arsiv|runner-kur|runner-gecis|runner-geri|runner-durum|runner-log|dur|basla]" ;;
+  *) echo "kullanım: osmandj [durum|rapor|telegram|youtube|yayin|token|log|radyo-log|guncelle|yukle|bagla|arsiv|runner-kur|runner-gecis|runner-geri|runner-durum|runner-log|dur|basla]" ;;
 esac
