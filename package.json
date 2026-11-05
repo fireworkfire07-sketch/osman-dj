@@ -1,0 +1,19 @@
+{
+  "name": "osman-dj-studio",
+  "version": "5.0.0",
+  "description": "OSMAN DJ V5 — otomatik müzik + anime klip üretimi ve YouTube yayını (ANATOLIAN SHAMANS)",
+  "main": "src/produce.js",
+  "scripts": {
+    "uret": "node src/produce.js",
+    "deneme": "node src/produce.js --minutes 3 --genres saman,psy --no-upload",
+    "zamanlayici": "node src/scheduler.js",
+    "simdi": "node src/scheduler.js --now",
+    "youtube-bagla": "node src/auth.js"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@napi-rs/canvas": "^1.1.0",
+    "playwright-core": "^1.64.1"
+  },
+  "private": true
+}

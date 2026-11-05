@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# OSMAN DJ yönetim komutu
+DIR=/opt/osmandj
+cd "$DIR" || { echo "OSMAN DJ kurulu değil ($DIR yok)"; exit 1; }
+case "${1:-durum}" in
+  durum)
+    echo "🌟 OSMAN DJ durumu"
+    docker compose ps --format '   {{.Name}}: {{.Status}}' 2>/dev/null
+    [ -f out/state.json ] && echo "   Üretim: $(python3 -c "import json;s=json.load(open('out/state.json'));print(f\"toplam {s.get('total',0)} set · bugün {s.get('count',0)} · son sonuç: {s.get('lastResult','-')}\")" 2>/dev/null)"
+    ls -d out/_uretim_* >/dev/null 2>&1 && echo "   ⏳ Şu an üretimde: $(tail -1 out/_uretim_*/log.txt 2>/dev/null | head -1)"
+    if [ -f out/arsiv/katalog.json ]; then
+      echo "   📼 Arşiv:"; python3 -c "
+import json;c=json.load(open('out/arsiv/katalog.json'))
+for s in c['sets'][-10:]: print(f\"      #{s['no']:04d} {s['name']} · {s['program']} · kalite {s.get('score')} · {'YouTube ✓' if s.get('youtube') else 'YouTube bekliyor'}\")" 2>/dev/null
+    else echo "   📼 Arşiv henüz boş (ilk set üretiliyor)"; fi
+    echo "   💾 Boş disk: $(df -h --output=avail $DIR | tail -1 | tr -d ' ')"
+    grep -q '^YT_REFRESH_TOKEN=.\+' .env && echo "   📺 YouTube: bağlı" || echo "   📺 YouTube: bağlı değil (README → YouTube bağlama)"
+    grep -q '^YT_STREAM_KEY=.\+' .env && echo "   📻 Radyo: anahtar var" || echo "   📻 Radyo: yayın anahtarı yok" ;;
+  log)        docker compose logs -f --tail 80 studio ;;
+  radyo-log)  docker compose logs -f --tail 50 radyo ;;
+  guncelle)   git pull && docker compose build -q && docker compose up -d && echo "✅ güncellendi" ;;
+  yukle)      docker compose run --rm studio node src/upload-pending.js "${@:2}" ;;
+  bagla)      docker compose run --rm --network host studio node src/auth.js ;;
+  arsiv)      ls -1 out/arsiv | grep -v -E 'katalog|index' ;;
+  dur)        docker compose stop && echo "⏸ durdu" ;;
+  basla)      docker compose up -d && echo "▶ çalışıyor" ;;
+  *) echo "kullanım: osmandj [durum|log|radyo-log|guncelle|yukle|bagla|arsiv|dur|basla]" ;;
+esac

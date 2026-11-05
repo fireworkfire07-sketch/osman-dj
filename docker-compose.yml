@@ -1,0 +1,28 @@
+services:
+  studio:
+    build: .
+    container_name: osmandj
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - TZ=Europe/Istanbul
+    volumes:
+      - ./out:/app/out            # üretilen videolar, raporlar
+      - ./custom:/app/custom      # kendi enstrüman kayıtların (ör. kopuz_38.wav)
+      - ./config.json:/app/config.json
+      - ./.env:/app/.env
+    shm_size: "1gb"
+    command: ["node", "src/scheduler.js"]
+
+  radyo:
+    build: .
+    container_name: osmandj-radyo
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - TZ=Europe/Istanbul
+    volumes:
+      - ./out:/app/out
+      - ./config.json:/app/config.json
+      - ./.env:/app/.env
+    command: ["node", "src/live.js"]
