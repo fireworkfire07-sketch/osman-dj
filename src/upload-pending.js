@@ -16,6 +16,9 @@ const { nextLocalTime } = require('./time');
 (async () => {
   const tz = cfg.timezone || 'Europe/Istanbul';
   const slots = (cfg.production && cfg.production.publishSlots && cfg.production.publishSlots.length) ? cfg.production.publishSlots : ['20:00'];
+  // --tekrar 1,2 → bu setleri yanlış kanala gittiyse yeniden yükle
+  const ti = process.argv.indexOf('--tekrar');
+  if (ti > 0) for (const n of String(process.argv[ti + 1] || '').split(',').map(Number).filter(Boolean)) { updateEntry(n, { youtube: null, publishAt: null }); console.log(`↺ #${String(n).padStart(4, '0')} yeniden yüklenecek`); }
   const pending = readCatalog().sets.filter(s => !s.youtube && s.video && fs.existsSync(path.join(DIR, s.video)));
   if (!pending.length) { console.log('✅ Yüklenecek set yok, hepsi YouTube\'da.'); return; }
   console.log(`📦 ${pending.length} set YouTube'u bekliyor`);
