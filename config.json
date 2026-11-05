@@ -4,32 +4,88 @@
   "minutes": 60,
   "workers": 0,
   "klasikEvery": 3,
-
   "production": {
     "mode": "surekli",
     "setsPerDay": 4,
     "maxTotal": 10,
-    "publishSlots": ["12:00", "17:00", "20:00", "22:30"],
+    "publishSlots": [
+      "12:00",
+      "17:00",
+      "20:00",
+      "22:30"
+    ],
     "time": "02:00",
     "minFreeGB": 15
   },
-
-  "archive": { "keepLocal": 40 },
-
-  "live": { "enabled": true, "rtmpUrl": "rtmp://a.rtmp.youtube.com/live2", "newestFirst": 3, "hours": 12 },
-
-  "video": { "width": 1280, "height": 720, "fps": 30, "crf": 21, "anime": true },
-
-  "upload": { "enabled": true, "privacy": "private", "minScore": 80, "playlistId": "" },
-
+  "archive": {
+    "keepLocal": 40
+  },
+  "live": {
+    "enabled": true,
+    "rtmpUrl": "rtmp://a.rtmp.youtube.com/live2",
+    "newestFirst": 3,
+    "hours": 12
+  },
+  "video": {
+    "width": 1280,
+    "height": 720,
+    "fps": 30,
+    "crf": 21,
+    "anime": true
+  },
+  "upload": {
+    "enabled": true,
+    "privacy": "private",
+    "minScore": 80,
+    "playlistId": ""
+  },
   "programs": [
-    { "name": "Gece Ritüeli",        "genres": ["saman", "psy", "tech"],   "publish": "21:00" },
-    { "name": "Anadolu Rock Seansı", "genres": ["arock", "neset", "semah"], "publish": "20:00" },
-    { "name": "Antalya Gün Batımı",  "genres": ["dh", "neset", "saman"],   "publish": "19:00" },
-    { "name": "Semah Gecesi",        "genres": ["semah", "saman", "psy"],  "publish": "21:00" },
-    { "name": "Berlin'den Bozkıra",  "genres": ["tech", "psy", "semah"],   "publish": "22:00" }
+    {
+      "name": "Gece Ritüeli",
+      "genres": [
+        "saman",
+        "psy",
+        "tech"
+      ],
+      "publish": "21:00"
+    },
+    {
+      "name": "Anadolu Rock Seansı",
+      "genres": [
+        "arock",
+        "neset",
+        "semah"
+      ],
+      "publish": "20:00"
+    },
+    {
+      "name": "Antalya Gün Batımı",
+      "genres": [
+        "dh",
+        "neset",
+        "saman"
+      ],
+      "publish": "19:00"
+    },
+    {
+      "name": "Semah Gecesi",
+      "genres": [
+        "semah",
+        "saman",
+        "psy"
+      ],
+      "publish": "21:00"
+    },
+    {
+      "name": "Berlin'den Bozkıra",
+      "genres": [
+        "tech",
+        "psy",
+        "semah"
+      ],
+      "publish": "22:00"
+    }
   ],
-
   "weekly": {
     "pzt": "Anadolu Rock Seansı",
     "sal": "Antalya Gün Batımı",
@@ -39,16 +95,17 @@
     "cmt": "Gece Ritüeli",
     "paz": "Antalya Gün Batımı"
   },
-
   "runners": {
     "repos": [
       "fireworkfire07-sketch/shp-engine",
       "fireworkfire07-sketch/AITUBE2",
       "fireworkfire07-sketch/Nobody-Tells-You",
       "fireworkfire07-sketch/secret-history-plants",
-      "fireworkfire07-sketch/osman-ai"
+      "fireworkfire07-sketch/osman-ai",
+      "fireworkfire07-sketch/tamirci-polis-ai",
+      "fireworkfire07-sketch/foto-raf-ai"
     ],
-    "cpus": 3,
-    "memory": "6g"
+    "cpus": 2,
+    "memory": "4g"
   }
 }

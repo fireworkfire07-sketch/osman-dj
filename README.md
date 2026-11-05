@@ -132,14 +132,16 @@ Enstrümanlar: `baglama ney zurna didj kopuz def hang` · Nota numaraları: 36=D
 Otomasyon repoların (shp-engine, AITUBE2, Nobody-Tells-You, secret-history-plants, osman-ai) VPS'in gücüyle çalışır. Secrets GitHub'da kalır, hiçbir şey taşınmaz.
 
 1. GitHub → **Settings → Developer settings → Fine-grained tokens → Generate new token**
-   - Repository access: **Only select repositories** → bu 5 repo
-   - Permissions → Repository → **Administration: Read and write**
+   - Repository access: **Only select repositories** → shp-engine, AITUBE2, Nobody-Tells-You, secret-history-plants, osman-ai, tamirci-polis-ai, foto-raf-ai
+   - Permissions → Repository → **Administration: Read and write** ve **Variables: Read and write**
    - Süre: 1 yıl. Token'ı kopyala.
 2. VPS'te: `nano /opt/osmandj/.env` → `GH_RUNNER_PAT=` satırına yapıştır, kaydet
-3. `osmandj runner-kur` → her repo için izole, tek kullanımlık bir çalıştırıcı açılır (`osman-vps` etiketi, en fazla 3 CPU / 6 GB)
-4. İş akışlarında `runs-on: ubuntu-latest` yerine `runs-on: [self-hosted, osman-vps]` yazılan işler VPS'te çalışır.
+3. `osmandj runner-kur` → her repo için izole, tek kullanımlık bir çalıştırıcı açılır (`osman-vps`, her biri en fazla 2 CPU / 4 GB) ve hazır olan her repo **otomatik VPS'e geçer**
+4. İş akışları `runs-on: ${{ vars.RUNNER || 'ubuntu-latest' }}` kullanır: repo değişkeni `RUNNER=osman-vps` ise VPS, yoksa GitHub.
+   - `osmandj runner-geri` → hepsini GitHub sunucularına döndür (VPS bakımı vb.)
+   - `osmandj runner-gecis` → tekrar VPS'e al
 
-Güvenlik: Repolar public. Her repoda **Settings → Actions → General → Fork pull request workflows → "Require approval for all external contributors"** seç. Çalıştırıcılar her işten sonra sıfırlanır ve sunucuya erişemez.
+Güvenlik: Public repolarda yabancı PR'lar için onay zorunluluğu otomatik açılır ("Require approval for all external contributors"). Çalıştırıcılar her işten sonra sıfırlanır ve sunucuya erişemez.
 
 ## Ses kaynakları
 

@@ -29,7 +29,10 @@ YML
   done
 } > runners.compose.yml
 GH_RUNNER_PAT="$GH_RUNNER_PAT" docker compose -f runners.compose.yml -p osmandj-runners up -d --remove-orphans
-echo "⏳ Kayıt bekleniyor..."; sleep 25
+echo "⏳ Çalıştırıcılar kaydoluyor (ilk seferde imaj iniyor, 1-3 dk)..."; sleep 90
 docker compose -f runners.compose.yml -p osmandj-runners logs --tail 3 | grep -E "hazır|⚠" || true
-echo "✅ Tanımlanan repolar: $REPOS"
-echo "   İş akışlarında  runs-on: [self-hosted, osman-vps]  olanlar artık bu VPS'te çalışır."
+echo ""
+echo "🔀 Hazır olan repolar VPS'e geçiriliyor..."
+python3 scripts/runner-gecis.py
+echo ""
+echo "Geri dönmek istersen (hepsi GitHub sunucularına):  osmandj runner-geri"

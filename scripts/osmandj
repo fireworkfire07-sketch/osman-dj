@@ -24,9 +24,11 @@ for s in c['sets'][-10:]: print(f\"      #{s['no']:04d} {s['name']} · {s['progr
   bagla)      docker compose run --rm --network host studio node src/auth.js ;;
   arsiv)      ls -1 out/arsiv | grep -v -E 'katalog|index' ;;
   runner-kur) bash scripts/runner-kur.sh ;;
+  runner-gecis) python3 scripts/runner-gecis.py ;;
+  runner-geri) python3 scripts/runner-gecis.py geri ;;
   runner-durum) docker compose -f runners.compose.yml -p osmandj-runners ps --format '   {{.Name}}: {{.Status}}' ;;
   runner-log) docker compose -f runners.compose.yml -p osmandj-runners logs -f --tail 30 ;;
   dur)        docker compose stop && echo "⏸ durdu" ;;
   basla)      docker compose up -d && echo "▶ çalışıyor" ;;
-  *) echo "kullanım: osmandj [durum|log|radyo-log|guncelle|yukle|bagla|arsiv|runner-kur|runner-durum|runner-log|dur|basla]" ;;
+  *) echo "kullanım: osmandj [durum|log|radyo-log|guncelle|yukle|bagla|arsiv|runner-kur|runner-gecis|runner-geri|runner-durum|runner-log|dur|basla]" ;;
 esac
