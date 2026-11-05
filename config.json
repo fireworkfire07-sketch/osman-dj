@@ -38,5 +38,17 @@
     "cum": "Berlin'den Bozkıra",
     "cmt": "Gece Ritüeli",
     "paz": "Antalya Gün Batımı"
+  },
+
+  "runners": {
+    "repos": [
+      "fireworkfire07-sketch/shp-engine",
+      "fireworkfire07-sketch/AITUBE2",
+      "fireworkfire07-sketch/Nobody-Tells-You",
+      "fireworkfire07-sketch/secret-history-plants",
+      "fireworkfire07-sketch/osman-ai"
+    ],
+    "cpus": 3,
+    "memory": "6g"
   }
 }

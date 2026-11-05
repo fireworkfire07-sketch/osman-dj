@@ -15,6 +15,7 @@ for s in c['sets'][-10:]: print(f\"      #{s['no']:04d} {s['name']} · {s['progr
     else echo "   📼 Arşiv henüz boş (ilk set üretiliyor)"; fi
     echo "   💾 Boş disk: $(df -h --output=avail $DIR | tail -1 | tr -d ' ')"
     grep -q '^YT_REFRESH_TOKEN=.\+' .env && echo "   📺 YouTube: bağlı" || echo "   📺 YouTube: bağlı değil (README → YouTube bağlama)"
+    [ -f runners.compose.yml ] && echo "   🤖 GitHub çalıştırıcıları: $(docker compose -f runners.compose.yml -p osmandj-runners ps -q 2>/dev/null | wc -l) aktif"
     grep -q '^YT_STREAM_KEY=.\+' .env && echo "   📻 Radyo: anahtar var" || echo "   📻 Radyo: yayın anahtarı yok" ;;
   log)        docker compose logs -f --tail 80 studio ;;
   radyo-log)  docker compose logs -f --tail 50 radyo ;;
@@ -22,7 +23,10 @@ for s in c['sets'][-10:]: print(f\"      #{s['no']:04d} {s['name']} · {s['progr
   yukle)      docker compose run --rm studio node src/upload-pending.js "${@:2}" ;;
   bagla)      docker compose run --rm --network host studio node src/auth.js ;;
   arsiv)      ls -1 out/arsiv | grep -v -E 'katalog|index' ;;
+  runner-kur) bash scripts/runner-kur.sh ;;
+  runner-durum) docker compose -f runners.compose.yml -p osmandj-runners ps --format '   {{.Name}}: {{.Status}}' ;;
+  runner-log) docker compose -f runners.compose.yml -p osmandj-runners logs -f --tail 30 ;;
   dur)        docker compose stop && echo "⏸ durdu" ;;
   basla)      docker compose up -d && echo "▶ çalışıyor" ;;
-  *) echo "kullanım: osmandj [durum|log|radyo-log|guncelle|yukle|bagla|arsiv|dur|basla]" ;;
+  *) echo "kullanım: osmandj [durum|log|radyo-log|guncelle|yukle|bagla|arsiv|runner-kur|runner-durum|runner-log|dur|basla]" ;;
 esac

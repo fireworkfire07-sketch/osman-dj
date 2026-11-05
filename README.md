@@ -127,6 +127,20 @@ Enstrümanlar: `baglama ney zurna didj kopuz def hang` · Nota numaraları: 36=D
 
 `.env` içine `ANTHROPIC_API_KEY=` yazarsan başlık ve açıklamayı Claude yazar; yoksa hazır şablon kullanılır. Bölüm zaman damgaları her iki durumda da otomatik eklenir.
 
+## 8) GitHub repolarını VPS'e tanımla (self-hosted runner)
+
+Otomasyon repoların (shp-engine, AITUBE2, Nobody-Tells-You, secret-history-plants, osman-ai) VPS'in gücüyle çalışır. Secrets GitHub'da kalır, hiçbir şey taşınmaz.
+
+1. GitHub → **Settings → Developer settings → Fine-grained tokens → Generate new token**
+   - Repository access: **Only select repositories** → bu 5 repo
+   - Permissions → Repository → **Administration: Read and write**
+   - Süre: 1 yıl. Token'ı kopyala.
+2. VPS'te: `nano /opt/osmandj/.env` → `GH_RUNNER_PAT=` satırına yapıştır, kaydet
+3. `osmandj runner-kur` → her repo için izole, tek kullanımlık bir çalıştırıcı açılır (`osman-vps` etiketi, en fazla 3 CPU / 6 GB)
+4. İş akışlarında `runs-on: ubuntu-latest` yerine `runs-on: [self-hosted, osman-vps]` yazılan işler VPS'te çalışır.
+
+Güvenlik: Repolar public. Her repoda **Settings → Actions → General → Fork pull request workflows → "Require approval for all external contributors"** seç. Çalıştırıcılar her işten sonra sıfırlanır ve sunucuya erişemez.
+
 ## Ses kaynakları
 
 Darbuka: pybuka (Maksim Koltsov, MIT). Bağlama/ney/zurna/davul tınıları: FluidR3 GM (Frank Wen) via gleitz/midi-js-soundfonts, **CC BY 3.0**. Bunlar enstrümanların kendisi değil, onlara en yakın gerçek akustik kayıtlar. Didgeridoo, ağız kopuzu, şaman defi ve hang sentezle üretilir. Klasik temalar kamu malıdır.
