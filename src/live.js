@@ -7,6 +7,8 @@ const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
 const { readCatalog, DIR } = require('./archive');
+const tg = require('./notify');
+let drops = 0;
 
 const ROOT = path.join(__dirname, '..');
 for (const l of (fs.existsSync(path.join(ROOT, '.env')) ? fs.readFileSync(path.join(ROOT, '.env'), 'utf8') : '').split('\n')) { const m = l.match(/^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.*)\s*$/); if (m && !process.env[m[1]]) process.env[m[1]] = m[2]; }
@@ -42,6 +44,7 @@ async function loop() {
     const code = await new Promise(res => { child = spawn('ffmpeg', args, { stdio: ['ignore', 'inherit', 'inherit'] }); child.on('close', res); });
     if (TEST) { console.log(`🧪 test bitti (kod ${code}) → ${TEST.out}`); return; }
     console.log(code === 0 ? '🔁 liste bitti, yenisi hazırlanıyor (yeni setler dahil)' : `⚠ yayın koptu (kod ${code}) · 10 sn sonra yeniden bağlanıyor`);
+    if (code !== 0 && ++drops % 5 === 1) tg.send(`⚠ <b>7/24 radyo koptu</b> (kod ${code}) · kendisi yeniden bağlanıyor`);
     await new Promise(r => setTimeout(r, code === 0 ? 1000 : 10000));
   }
 }

@@ -22,6 +22,7 @@ const { uploadVideo } = require('./youtube');
 const { nameSet } = require('./name');
 const { usedNames, nextNo, addToArchive, pruneLocal } = require('./archive');
 const { localParts, nextLocalTime, todaysProgram } = require('./time');
+const tg = require('./notify');
 
 function loadEnv(f) { if (!fs.existsSync(f)) return; for (const l of fs.readFileSync(f, 'utf8').split('\n')) { const m = l.match(/^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.*)\s*$/); if (m && !process.env[m[1]]) process.env[m[1]] = m[2].replace(/^["']|["']$/g, ''); } }
 function arg(name, def) { const i = process.argv.indexOf('--' + name); return i < 0 ? def : (process.argv[i + 1] && !process.argv[i + 1].startsWith('--') ? process.argv[i + 1] : true); }
@@ -106,10 +107,21 @@ async function produce(opts = {}) {
     const { dest } = addToArchive(dir, { no, name: nm.name, date: L.date, time: L.hm, program: prog.name, genres: keys.map(k => G[k].n), minutes,
       classics: kl, chapters: cps, score: q.score, youtube: report.youtube ? report.youtube.url : null, title: meta.title });
     log(`📼 arşivlendi: ${path.relative(ROOT, dest)}`);
+    await tg.photo(path.join(dest, 'kapak.jpg'), [
+      `🎉 <b>Yeni set hazır!</b>`,
+      `#${String(no).padStart(4, '0')} <b>${tg.esc(nm.name)}</b>`,
+      `${tg.esc(prog.name)} · ${keys.map(k => G[k].n).join(' → ')} · ${minutes} dk`,
+      kl.length ? `🎻 ${tg.esc(kl.join(', '))}` : '',
+      `✅ Kalite ${q.score}/100 · ${(mi.after.I).toFixed(1)} LUFS · ${v.shots} kesme`,
+      report.youtube ? `📺 ${report.youtube.url}${report.youtube.publishAt ? ' · yayın ' + new Date(report.youtube.publishAt).toLocaleString('tr-TR', { timeZone: tz }) : ''}` : '📺 YouTube: henüz yüklenmedi (arşivde bekliyor)',
+      `⏱ ses ${report.steps.audio} · video ${report.steps.video}`,
+    ].filter(Boolean).join('\n'));
     pruneLocal(+(cfg.archive && cfg.archive.keepLocal) || 30, log);
     return { ...report, dir: dest };
   } catch (e) {
-    report.error = String(e.stack || e); report.ok = false; save(); log('❌ ' + e.message); throw e;
+    report.error = String(e.stack || e); report.ok = false; save(); log('❌ ' + e.message);
+    await tg.send(`❌ <b>OSMAN DJ üretim hatası</b>\n${tg.esc(prog.name)} · ${minutes} dk\n<code>${tg.esc(String(e.message).slice(0, 500))}</code>\nAyrıntı: out/${path.basename(dir)}/log.txt`);
+    throw e;
   } finally { try { fs.unlinkSync(lock); } catch (e) {} }
 }
 

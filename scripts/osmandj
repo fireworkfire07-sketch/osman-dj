@@ -19,10 +19,13 @@ for s in c['sets'][-10:]: print(f\"      #{s['no']:04d} {s['name']} · {s['progr
     grep -q '^YT_STREAM_KEY=.\+' .env && echo "   📻 Radyo: anahtar var" || echo "   📻 Radyo: yayın anahtarı yok" ;;
   log)        docker compose logs -f --tail 80 studio ;;
   radyo-log)  docker compose logs -f --tail 50 radyo ;;
-  guncelle)   git pull && docker compose build -q && docker compose up -d && echo "✅ güncellendi" ;;
+  guncelle)   git pull -q && install -m 755 scripts/osmandj /usr/local/bin/osmandj && docker compose build -q && docker compose up -d && echo "✅ güncellendi" ;;
   yukle)      docker compose run --rm studio node src/upload-pending.js "${@:2}" ;;
   bagla)      docker compose run --rm --network host studio node src/auth.js ;;
   arsiv)      ls -1 out/arsiv | grep -v -E 'katalog|index' ;;
+  rapor)      docker compose exec -T studio node src/notify.js ;;
+  telegram)   read -p "Telegram bot token: " A; read -p "Telegram chat id: " B; sed -i '/^TELEGRAM_BOT_TOKEN=/d;/^TELEGRAM_CHAT_ID=/d' .env; printf 'TELEGRAM_BOT_TOKEN=%s\nTELEGRAM_CHAT_ID=%s\n' "$(echo $A|tr -d '[:space:]')" "$(echo $B|tr -d '[:space:]')" >> .env; docker compose up -d --force-recreate >/dev/null 2>&1; sleep 3; docker compose exec -T studio node src/notify.js ;;
+  token)      read -s -p "GitHub token: " T; echo; T=$(echo "$T"|tr -d '[:space:]'); sed -i '/^GH_RUNNER_PAT=/d' .env; echo "GH_RUNNER_PAT=$T" >> .env; echo "✅ token kaydedildi ($(echo -n $T|wc -c) karakter)"; bash scripts/runner-kur.sh ;;
   runner-kur) bash scripts/runner-kur.sh ;;
   runner-gecis) python3 scripts/runner-gecis.py ;;
   runner-geri) python3 scripts/runner-gecis.py geri ;;
@@ -30,5 +33,5 @@ for s in c['sets'][-10:]: print(f\"      #{s['no']:04d} {s['name']} · {s['progr
   runner-log) docker compose -f runners.compose.yml -p osmandj-runners logs -f --tail 30 ;;
   dur)        docker compose stop && echo "⏸ durdu" ;;
   basla)      docker compose up -d && echo "▶ çalışıyor" ;;
-  *) echo "kullanım: osmandj [durum|log|radyo-log|guncelle|yukle|bagla|arsiv|runner-kur|runner-gecis|runner-geri|runner-durum|runner-log|dur|basla]" ;;
+  *) echo "kullanım: osmandj [durum|rapor|telegram|token|log|radyo-log|guncelle|yukle|bagla|arsiv|runner-kur|runner-gecis|runner-geri|runner-durum|runner-log|dur|basla]" ;;
 esac

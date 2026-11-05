@@ -7,6 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
 const { localParts, todaysProgram } = require('./time');
+const tg = require('./notify');
 
 const ROOT = path.join(__dirname, '..');
 const OUT = path.join(ROOT, 'out');
@@ -45,7 +46,10 @@ function tick() {
   if (s.date !== L.date) { s.date = L.date; s.count = 0; writeSt(s); }
   if (failStreak >= 3) { if (failStreak === 3) console.log('⚠ 3 hata üst üste · 30 dk bekleniyor'); failStreak++; setTimeout(() => { failStreak = 0; }, 30 * 60e3); return; }
   if (freeGB() < P.minFreeGB) { console.log(`⚠ disk az (${freeGB().toFixed(1)} GB) · üretim bekliyor`); return; }
-  if (P.maxTotal && (s.total || 0) >= P.maxTotal) { if (!s.capLogged) { console.log(`🏁 ${P.maxTotal} set tamamlandı · üretim durdu (config.json → production.maxTotal'ı artır)`); s.capLogged = true; writeSt(s); } return; }
+  // günlük rapor
+  const rt = (cfg.report && cfg.report.time) || '09:00';
+  if (L.hm >= rt && s.lastReport !== L.date) { s.lastReport = L.date; writeSt(s); tg.send(tg.statusText()); }
+  if (P.maxTotal && (s.total || 0) >= P.maxTotal) { if (!s.capLogged) { console.log(`🏁 ${P.maxTotal} set tamamlandı · üretim durdu (config.json → production.maxTotal'ı artır)`); s.capLogged = true; writeSt(s); tg.send(`🏁 <b>${P.maxTotal} set tamamlandı!</b> Üretim durdu.\nDevam için config.json → production.maxTotal değerini artır.\n\n` + tg.statusText()); } return; }
   if (P.mode === 'surekli') {
     if ((s.count || 0) >= P.setsPerDay) return;
     // programları sırayla döndür; günün ilk seti haftalık takvimden
@@ -58,7 +62,15 @@ function tick() {
   }
 }
 
+// açılışta: yarım kalmış üretimi temizle (konteyner yeniden başladıysa kilit kalmış olabilir)
+try { fs.unlinkSync(path.join(OUT, '.lock')); console.log('🧹 eski üretim kilidi kaldırıldı'); } catch (e) {}
+for (const d of fs.readdirSync(OUT).filter(x => x.startsWith('_uretim_'))) {
+  fs.mkdirSync(path.join(OUT, '_yarim'), { recursive: true });
+  for (const f of ['raw.wav', 'master.wav']) { try { fs.unlinkSync(path.join(OUT, d, f)); } catch (e) {} }
+  fs.renameSync(path.join(OUT, d), path.join(OUT, '_yarim', d)); console.log('🧹 yarım kalan üretim kenara alındı: ' + d);
+}
 const c0 = readCfg(), P0 = pcfg(c0);
 console.log(`🌟 OSMAN DJ V5.1 zamanlayıcı${P0.maxTotal ? ` · hedef ${P0.maxTotal} set (şu ana kadar ${readSt().total || 0})` : ''} · mod: ${P0.mode === 'surekli' ? `SÜREKLİ (günde ${P0.setsPerDay} set, yayın saatleri ${P0.publishSlots.join(', ') || '-'})` : `GÜNLÜK (${P0.time})`} · ${c0.timezone}`);
+tg.send(`🟢 <b>OSMAN DJ zamanlayıcı başladı</b>\nmod: ${P0.mode === 'surekli' ? `sürekli · günde ${P0.setsPerDay} set` : 'günlük'}${P0.maxTotal ? ` · hedef ${P0.maxTotal} set` : ''}`);
 if (process.argv.includes('--now')) runOne(todaysProgram(c0, c0.timezone), null, 'elle başlatıldı (--now)');
 setInterval(tick, 30000); setTimeout(tick, 2000);
