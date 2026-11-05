@@ -28,4 +28,4 @@ http.createServer(async (req, res) => {
   fs.writeFileSync(ENV, /^YT_REFRESH_TOKEN=.*$/m.test(env) ? env.replace(/^YT_REFRESH_TOKEN=.*$/m, line) : env.replace(/\n?$/, '\n') + line + '\n');
   res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }); res.end('<h2>✅ ANATOLIAN SHAMANS bağlandı. Bu pencereyi kapatabilirsin.</h2>');
   console.log('✅ Refresh token .env dosyasına yazıldı. Artık otomatik yükleme hazır.'); setTimeout(() => process.exit(0), 500);
-}).listen(8085, '127.0.0.1', () => { console.log('\n👉 Bu linki tarayıcıda aç ve kanal hesabınla izin ver:\n\n' + url + '\n'); });
+}).listen(8085, process.env.AUTH_HOST || '127.0.0.1', () => { console.log('\n👉 Bu linki tarayıcıda aç ve kanal hesabınla izin ver:\n\n' + url + '\n'); });
