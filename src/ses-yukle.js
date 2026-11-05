@@ -30,8 +30,14 @@ function fontFam() {
 }
 
 function duration(f) {
-  try { return +execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f]).toString().trim() || 0; }
-  catch { return 0; }
+  let d = 0;
+  try { d = +execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f]).toString().trim() || 0; } catch {}
+  if (d > 0) return d;
+  // tarayıcı (MediaRecorder) webm dosyalarında süre bilgisi yazmaz → sesi hızlıca tarayıp ölç
+  const { spawnSync } = require('child_process');
+  const r = spawnSync('ffmpeg', ['-hide_banner', '-i', f, '-map', '0:a:0', '-c', 'copy', '-f', 'null', '-'], { encoding: 'utf8', maxBuffer: 64 << 20 });
+  const m = [...String(r.stderr).matchAll(/time=(\d+):(\d+):([\d.]+)/g)].pop();
+  return m ? +m[1] * 3600 + +m[2] * 60 + +m[3] : 0;
 }
 function hasVideo(f) {
   try { return /video/.test(execFileSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=codec_type', '-of', 'csv=p=0', f]).toString()); }
