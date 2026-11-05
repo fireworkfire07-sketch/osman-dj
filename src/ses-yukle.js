@@ -37,7 +37,7 @@ const hms = s => { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.f
 // dosya adından okunur başlık: OsmanDJ_Psytrance_2026-11-04_ses.webm → Psytrance
 function niceName(file) {
   let n = path.basename(file).replace(EXT, '').replace(/^osman_?dj_?/i, '').replace(/_(ses|ham|pro_klip)$/i, '');
-  n = n.replace(/\d{4}[-_.]\d{2}[-_.]\d{2}([T_ -]?\d{2}[-_.:]?\d{2}([-_.:]?\d{2})?)?/g, '').replace(/[_-]+/g, ' ').trim();
+  n = n.replace(/\d{4}[-_.]\d{2}[-_.]\d{2}([T_ -]?\d{2}[-_.:]?\d{2}([-_.:]?\d{2})?)?/g, '').replace(/[_-]+/g, ' ').replace(/\b\d{5,}\b/g, '').replace(/\s+/g, ' ').trim();
   return n || 'Canlı Set';
 }
 
