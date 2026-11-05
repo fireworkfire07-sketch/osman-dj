@@ -35,7 +35,21 @@ for s in c['sets'][-10:]: print(f\"      #{s['no']:04d} {s['name']} · {s['progr
     docker compose up -d --force-recreate radyo >/dev/null 2>&1 && echo "📻 7/24 radyo başlıyor:  osmandj radyo-log" ;;
   arsiv)      ls -1 out/arsiv | grep -v -E 'katalog|index' ;;
   rapor)      docker compose exec -T studio node src/notify.js ;;
-  telegram)   read -p "Telegram bot token: " A; read -p "Telegram chat id: " B; sed -i '/^TELEGRAM_BOT_TOKEN=/d;/^TELEGRAM_CHAT_ID=/d' .env; printf 'TELEGRAM_BOT_TOKEN=%s\nTELEGRAM_CHAT_ID=%s\n' "$(echo $A|tr -d '[:space:]')" "$(echo $B|tr -d '[:space:]')" >> .env; docker compose up -d --force-recreate >/dev/null 2>&1; sleep 3; docker compose exec -T studio node src/notify.js ;;
+  telegram)
+    read -s -p "Telegram bot token (yazarken görünmez): " A; echo; A=$(echo "$A"|tr -d '[:space:]')
+    curl -s "https://api.telegram.org/bot$A/getMe" | grep -q '"ok":true' || { echo "❌ Token geçersiz. BotFather'dan tekrar kopyala."; exit 1; }
+    echo "👉 Şimdi Telegram'da botuna git, START'a bas (ya da 'merhaba' yaz). Bekliyorum..."
+    B=""; for i in $(seq 1 60); do
+      B=$(curl -s "https://api.telegram.org/bot$A/getUpdates" | python3 -c 'import sys,json
+r=json.load(sys.stdin).get("result",[])
+ids=[(u.get("message") or u.get("my_chat_member") or {}).get("chat",{}).get("id") for u in r]
+ids=[i for i in ids if i]
+print(ids[-1] if ids else "")' 2>/dev/null)
+      [ -n "$B" ] && break; sleep 3; done
+    [ -z "$B" ] && { echo "❌ Mesaj gelmedi. Botuna START'a basıp tekrar dene:  osmandj telegram"; exit 1; }
+    sed -i '/^TELEGRAM_BOT_TOKEN=/d;/^TELEGRAM_CHAT_ID=/d' .env; printf 'TELEGRAM_BOT_TOKEN=%s\nTELEGRAM_CHAT_ID=%s\n' "$A" "$B" >> .env
+    echo "✅ Bağlandı. Test raporu gönderiliyor..."
+    docker compose up -d --force-recreate >/dev/null 2>&1; sleep 5; docker compose exec -T studio node src/notify.js ;;
   token)      read -s -p "GitHub token: " T; echo; T=$(echo "$T"|tr -d '[:space:]'); sed -i '/^GH_RUNNER_PAT=/d' .env; echo "GH_RUNNER_PAT=$T" >> .env; echo "✅ token kaydedildi ($(echo -n $T|wc -c) karakter)"; bash scripts/runner-kur.sh ;;
   runner-kur) bash scripts/runner-kur.sh ;;
   runner-gecis) python3 scripts/runner-gecis.py ;;
