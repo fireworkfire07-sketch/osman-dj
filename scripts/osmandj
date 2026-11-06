@@ -22,6 +22,7 @@ for s in c['sets'][-10:]: print(f\"      #{s['no']:04d} {s['name']} · {s['progr
   guncelle)   git pull -q && install -m 755 scripts/osmandj /usr/local/bin/osmandj && docker compose build -q && docker compose up -d && echo "✅ güncellendi" ;;
   ses-yukle)  mkdir -p out/ses && docker compose run --rm -v "$PWD/src:/app/src" studio node src/ses-yukle.js "${@:2}" ;;
   kapak)      docker compose run --rm -v "$PWD/src:/app/src" studio node src/kapak-yukle.js "${@:2}" ;;
+  arge)       docker compose exec -T studio node src/arge.js "${@:2}" ;;
   yukle)      docker compose run --rm -v "$PWD/src:/app/src" studio node src/upload-pending.js "${@:2}" ;;
   bagla)      docker compose run --rm -p 127.0.0.1:8085:8085 -e AUTH_HOST=0.0.0.0 -v "$PWD/src/auth.js:/app/src/auth.js" studio node src/auth.js && docker compose up -d --force-recreate >/dev/null 2>&1 && echo "📺 YouTube bağlandı. Biriken setler için:  osmandj yukle" ;;
   youtube)
