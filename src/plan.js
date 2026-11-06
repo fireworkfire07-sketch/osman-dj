@@ -15,6 +15,9 @@ function planSet(core, o) {
   const T = o.minutes * 60;
   const genres = o.genres.filter(g => G[g]);
   if (!genres.length) throw new Error('geçerli tür yok: ' + o.genres);
+  // Ar-Ge beyninin öğrendiği tempolar
+  if (o.bpm) for (const k of Object.keys(o.bpm)) if (G[k]) G[k].bpm = o.bpm[k];
+  const TL = o.transLen || 64;
   const R = rng(o.seed || Date.now());
   core.setOpts({ klasikOn: o.klasik !== false, klasikSel: -1, motBase: Math.floor(R() * 6), animeOn: o.anime !== false, animeDur: T });
 
@@ -23,7 +26,7 @@ function planSet(core, o) {
   const per = T / genres.length;
   let kIdx = 0; const kBase = Math.floor(R() * 6); // altı klasik eser sırayla
   while (t < T - 0.2) {
-    if (arrStep % 16 === 0 && !trans && pendTrans) { trans = { to: pendTrans, st: step, len: 64, fb: bpm, tb: G[pendTrans].bpm }; pendTrans = null; }
+    if (arrStep % 16 === 0 && !trans && pendTrans) { trans = { to: pendTrans, st: step, len: TL, fb: bpm, tb: G[pendTrans].bpm }; pendTrans = null; }
     if (trans) {
       const p = (step - trans.st) / trans.len;
       if (p >= 1) { cur = trans.to; bpm = G[cur].bpm; arrStep = Math.floor(arrStep / 1024) * 1024 + 128; trans = null; jump = true; }

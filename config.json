@@ -1,21 +1,31 @@
 {
   "channel": "ANATOLIAN SHAMANS",
   "timezone": "Europe/Istanbul",
-  "minutes": 60,
+  "minutes": [
+    120,
+    150
+  ],
   "workers": 0,
   "klasikEvery": 3,
   "production": {
-    "mode": "surekli",
+    "mode": "haftalik",
     "setsPerDay": 4,
-    "maxTotal": 10,
+    "maxTotal": 0,
     "publishSlots": [
       "12:00",
       "17:00",
       "20:00",
       "22:30"
     ],
-    "time": "02:00",
-    "minFreeGB": 15
+    "time": "03:00",
+    "minFreeGB": 15,
+    "days": [
+      "pzt",
+      "car",
+      "cum",
+      "paz"
+    ],
+    "publish": "20:00"
   },
   "archive": {
     "keepLocal": 40
@@ -110,5 +120,9 @@
   },
   "report": {
     "time": "09:00"
+  },
+  "arge": {
+    "enabled": true,
+    "time": "05:00"
   }
 }

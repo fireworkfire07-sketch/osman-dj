@@ -8,6 +8,14 @@ const path = require('path');
 const { spawn } = require('child_process');
 const { localParts, todaysProgram } = require('./time');
 const tg = require('./notify');
+const beyin = require('./beyin');
+const WDTR = { Mon: 'pzt', Tue: 'sal', Wed: 'car', Thu: 'per', Fri: 'cum', Sat: 'cmt', Sun: 'paz' };
+let argeRunning = false;
+function runArge() {
+  argeRunning = true; console.log('🧠 Ar-Ge başlıyor');
+  const p = spawn(process.execPath, [path.join(__dirname, 'arge.js')], { stdio: 'inherit' });
+  p.on('close', c => { argeRunning = false; console.log(c === 0 ? '🧠 Ar-Ge bitti' : '⚠ Ar-Ge hata ile bitti'); });
+}
 
 const ROOT = path.join(__dirname, '..');
 const OUT = path.join(ROOT, 'out');
@@ -50,6 +58,19 @@ function tick() {
   const rt = (cfg.report && cfg.report.time) || '09:00';
   if (L.hm >= rt && s.lastReport !== L.date) { s.lastReport = L.date; writeSt(s); tg.send(tg.statusText()); }
   if (P.maxTotal && (s.total || 0) >= P.maxTotal) { if (!s.capLogged) { console.log(`🏁 ${P.maxTotal} set tamamlandı · üretim durdu (config.json → production.maxTotal'ı artır)`); s.capLogged = true; writeSt(s); tg.send(`🏁 <b>${P.maxTotal} set tamamlandı!</b> Üretim durdu.\nDevam için config.json → production.maxTotal değerini artır.\n\n` + tg.statusText()); } return; }
+  // Ar-Ge: her gün bir kez (üretimle paralel çalışabilir, hafif)
+  const at = (cfg.arge && cfg.arge.time) || '05:00';
+  if ((!cfg.arge || cfg.arge.enabled !== false) && !argeRunning && L.hm >= at && s.lastArge !== L.date) { s.lastArge = L.date; writeSt(s); runArge(); }
+  if (P.mode === 'haftalik') {
+    // haftada belirli günler, günde 1 uzun set; programı beyin seçer
+    const days = P.days || ['pzt', 'car', 'cum', 'paz'];
+    if (days.includes(WDTR[L.wd]) && L.hm >= P.time && s.lastDaily !== L.date) {
+      s.lastDaily = L.date; writeSt(s);
+      const prog = beyin.pickProgram(beyin.load(), cfg.programs, Date.now() % 1e9);
+      runOne(prog, P.publish || prog.publish, `haftalık üretim (${days.join(', ')})`);
+    }
+    return;
+  }
   if (P.mode === 'surekli') {
     if ((s.count || 0) >= P.setsPerDay) return;
     // programları sırayla döndür; günün ilk seti haftalık takvimden
@@ -70,7 +91,7 @@ for (const d of fs.readdirSync(OUT).filter(x => x.startsWith('_uretim_'))) {
   fs.renameSync(path.join(OUT, d), path.join(OUT, '_yarim', d)); console.log('🧹 yarım kalan üretim kenara alındı: ' + d);
 }
 const c0 = readCfg(), P0 = pcfg(c0);
-console.log(`🌟 OSMAN DJ V5.1 zamanlayıcı${P0.maxTotal ? ` · hedef ${P0.maxTotal} set (şu ana kadar ${readSt().total || 0})` : ''} · mod: ${P0.mode === 'surekli' ? `SÜREKLİ (günde ${P0.setsPerDay} set, yayın saatleri ${P0.publishSlots.join(', ') || '-'})` : `GÜNLÜK (${P0.time})`} · ${c0.timezone}`);
-tg.send(`🟢 <b>OSMAN DJ zamanlayıcı başladı</b>\nmod: ${P0.mode === 'surekli' ? `sürekli · günde ${P0.setsPerDay} set` : 'günlük'}${P0.maxTotal ? ` · hedef ${P0.maxTotal} set` : ''}`);
+console.log(`🌟 OSMAN DJ V5.1 zamanlayıcı${P0.maxTotal ? ` · hedef ${P0.maxTotal} set (şu ana kadar ${readSt().total || 0})` : ''} · mod: ${P0.mode === 'haftalik' ? `HAFTALIK (${(P0.days || []).join(', ')} · ${P0.time} · yayın ${P0.publish})` : P0.mode === 'surekli' ? `SÜREKLİ (günde ${P0.setsPerDay} set, yayın saatleri ${P0.publishSlots.join(', ') || '-'})` : `GÜNLÜK (${P0.time})`} · ${c0.timezone}`);
+tg.send(`🟢 <b>OSMAN DJ zamanlayıcı başladı</b>\nmod: ${P0.mode === 'haftalik' ? `haftalık · ${(P0.days || []).join(', ')}` : P0.mode === 'surekli' ? `sürekli · günde ${P0.setsPerDay} set` : 'günlük'}${P0.maxTotal ? ` · hedef ${P0.maxTotal} set` : ''}`);
 if (process.argv.includes('--now')) runOne(todaysProgram(c0, c0.timezone), null, 'elle başlatıldı (--now)');
 setInterval(tick, 30000); setTimeout(tick, 2000);

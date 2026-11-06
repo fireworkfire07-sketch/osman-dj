@@ -19,6 +19,7 @@ const { renderVideo, renderThumb } = require('./video');
 const { writeMeta, chapters, classics } = require('./meta');
 const { qc } = require('./qc');
 const { uploadVideo, channelName } = require('./youtube');
+const beyin = require('./beyin');
 const { nameSet } = require('./name');
 const { usedNames, nextNo, addToArchive, pruneLocal } = require('./archive');
 const { localParts, nextLocalTime, todaysProgram } = require('./time');
@@ -31,18 +32,21 @@ function gTable() { return require('../engine/core.js')({ OfflineAudioContext: c
 async function produce(opts = {}) {
   const tz = cfg.timezone || 'Europe/Istanbul';
   const prog = opts.program ? (cfg.programs.find(p => p.name === opts.program) || { name: opts.program, genres: ['psy'] }) : todaysProgram(cfg, tz);
-  const minutes = +(opts.minutes || prog.minutes || cfg.minutes || 60);
-  const genres = opts.genres ? String(opts.genres).split(',') : prog.genres;
   const seed = +(opts.seed || (Date.now() % 1e9));
+  // süre: config "minutes" tek sayı ya da [en az, en çok] aralığı (5 dk adımlarla)
+  const M = opts.minutes || prog.minutes || cfg.minutes || 60;
+  const minutes = Array.isArray(M) ? M[0] + 5 * Math.floor(((seed % 1000) / 1000) * ((M[1] - M[0]) / 5 + 1)) : +M;
+  const brain = beyin.load(), bo = beyin.planOpts(brain);
+  const genres = opts.genres ? String(opts.genres).split(',') : (minutes > 75 ? beyin.pickGenres(brain, prog, minutes, seed) : prog.genres);
   const L = localParts(new Date(), tz);
   fs.mkdirSync(path.join(ROOT, 'out'), { recursive: true });
   const lock = path.join(ROOT, 'out', '.lock');
-  if (fs.existsSync(lock) && Date.now() - fs.statSync(lock).mtimeMs < 6 * 3600e3) throw new Error('başka bir üretim sürüyor (out/.lock)');
+  if (fs.existsSync(lock) && Date.now() - fs.statSync(lock).mtimeMs < 10 * 3600e3) throw new Error('başka bir üretim sürüyor (out/.lock)');
   fs.writeFileSync(lock, String(process.pid));
   const dir = path.join(ROOT, 'out', `_uretim_${Date.now()}`); fs.mkdirSync(dir, { recursive: true });
   const logf = path.join(dir, 'log.txt');
   const log = (...a) => { const line = `[${new Date().toISOString().slice(11, 19)}] ${a.join(' ')}`; console.log(line); fs.appendFileSync(logf, line + '\n'); };
-  const report = { program: prog.name, minutes, genres, seed, date: L.date, started: new Date().toISOString(), steps: {} };
+  const report = { program: prog.name, minutes, genres, seed, brain: { gen: brain.gen, ...bo }, date: L.date, started: new Date().toISOString(), steps: {} };
   const save = () => fs.writeFileSync(path.join(dir, 'report.json'), JSON.stringify(report, null, 2));
   const T = () => { const t = Date.now(); return () => ((Date.now() - t) / 60000).toFixed(1) + ' dk'; };
   const G = gTable();
@@ -52,7 +56,7 @@ async function produce(opts = {}) {
     let t = T(), pct = -1;
     const studio = await openStudio({ channel: cfg.channel });
     const raw = path.join(dir, 'raw.wav');
-    const info = await renderAudio(studio, { minutes, genres, seed, klasik: prog.klasik !== false, anime: cfg.video.anime !== false, klasikEvery: cfg.klasikEvery || 3 }, raw,
+    const info = await renderAudio(studio, { minutes, genres, seed, klasik: prog.klasik !== false, anime: cfg.video.anime !== false, klasikEvery: bo.klasikEvery || cfg.klasikEvery || 3, bpm: bo.bpm, transLen: bo.transLen }, raw,
       p => { const q = Math.floor(p * 10); if (q !== pct) { pct = q; log(`🎛 ses %${q * 10}`); } }, +cfg.workers || os.cpus().length);
     await studio.browser.close();
     report.steps.audio = t(); report.setlog = info.setlog; save();
@@ -106,7 +110,7 @@ async function produce(opts = {}) {
     }
     // 8) Arşiv
     report.finished = new Date().toISOString(); report.ok = true; save();
-    const { dest } = addToArchive(dir, { no, name: nm.name, date: L.date, time: L.hm, program: prog.name, genres: keys.map(k => G[k].n), minutes,
+    const { dest } = addToArchive(dir, { no, name: nm.name, date: L.date, time: L.hm, program: prog.name, genres: keys.map(k => G[k].n), keys, brainGen: brain.gen, minutes,
       classics: kl, chapters: cps, score: q.score, youtube: report.youtube ? report.youtube.url : null, title: meta.title });
     log(`📼 arşivlendi: ${path.relative(ROOT, dest)}`);
     await tg.photo(path.join(dest, 'kapak.jpg'), [
