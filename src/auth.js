@@ -26,6 +26,7 @@ http.createServer(async (req, res) => {
   if (!j.refresh_token) { res.end('Hata: ' + JSON.stringify(j)); console.error(j); process.exit(1); }
   const line = 'YT_REFRESH_TOKEN=' + j.refresh_token;
   fs.writeFileSync(ENV, /^YT_REFRESH_TOKEN=.*$/m.test(env) ? env.replace(/^YT_REFRESH_TOKEN=.*$/m, line) : env.replace(/\n?$/, '\n') + line + '\n');
-  res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }); res.end('<h2>✅ ANATOLIAN SHAMANS bağlandı. Bu pencereyi kapatabilirsin.</h2>');
-  console.log('✅ Refresh token .env dosyasına yazıldı. Artık otomatik yükleme hazır.'); setTimeout(() => process.exit(0), 500);
+  res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }); res.end('<h2>✅ İzin alındı. Hangi kanala bağlandığı terminalde yazıyor.</h2>');
+  let ch = '?'; try { const u = await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true', { headers: { authorization: 'Bearer ' + j.access_token } }); const k = await u.json(); ch = (k.items && k.items[0] && k.items[0].snippet.title) || '(kanal yok)'; } catch {}
+  console.log('✅ Bağlanan kanal: ' + ch + (ch === 'ANATOLIAN SHAMANS' ? '' : '   ⚠ YANLIŞ KANAL — osmandj bagla ile tekrar dene, ANATOLIAN SHAMANS\'ı seç')); setTimeout(() => process.exit(0), 500);
 }).listen(8085, process.env.AUTH_HOST || '127.0.0.1', () => { console.log('\n👉 Bu linki tarayıcıda aç ve kanal hesabınla izin ver:\n\n' + url + '\n'); });

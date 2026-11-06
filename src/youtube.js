@@ -59,4 +59,10 @@ async function uploadVideo({ file, meta, privacy = 'private', publishAt, thumb, 
   return { id, url: 'https://youtu.be/' + id };
 }
 
-module.exports = { uploadVideo, accessToken };
+async function channelName() {
+  const tok = await accessToken();
+  const r = await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true', { headers: { authorization: 'Bearer ' + tok } });
+  const j = await r.json(); return (j.items && j.items[0] && j.items[0].snippet.title) || '(kanal yok)';
+}
+
+module.exports = { uploadVideo, accessToken, channelName };

@@ -10,10 +10,15 @@ const ROOT = path.join(__dirname, '..');
 for (const l of (fs.existsSync(path.join(ROOT, '.env')) ? fs.readFileSync(path.join(ROOT, '.env'), 'utf8') : '').split('\n')) { const m = l.match(/^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.*)\s*$/); if (m && !process.env[m[1]]) process.env[m[1]] = m[2]; }
 const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, 'config.json'), 'utf8'));
 const { readCatalog, updateEntry, DIR } = require('./archive');
-const { uploadVideo } = require('./youtube');
+const { uploadVideo, channelName } = require('./youtube');
 const { nextLocalTime } = require('./time');
 
 (async () => {
+  const want = (cfg.channel || '').trim(), ch = await channelName();
+  console.log(`📺 Bağlı kanal: ${ch}`);
+  if (want && ch.toLocaleLowerCase('tr') !== want.toLocaleLowerCase('tr') && !process.argv.includes('--zorla')) {
+    console.log(`❌ Yanlış kanal! "${want}" olmalı. Önce:  osmandj bagla  → hesap seçerken ${want}'ı seç.`); return;
+  }
   const tz = cfg.timezone || 'Europe/Istanbul';
   const slots = (cfg.production && cfg.production.publishSlots && cfg.production.publishSlots.length) ? cfg.production.publishSlots : ['20:00'];
   // --tekrar 1,2 → bu setleri yanlış kanala gittiyse yeniden yükle

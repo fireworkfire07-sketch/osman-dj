@@ -18,7 +18,7 @@ const { master } = require('./master');
 const { renderVideo, renderThumb } = require('./video');
 const { writeMeta, chapters, classics } = require('./meta');
 const { qc } = require('./qc');
-const { uploadVideo } = require('./youtube');
+const { uploadVideo, channelName } = require('./youtube');
 const { nameSet } = require('./name');
 const { usedNames, nextNo, addToArchive, pruneLocal } = require('./archive');
 const { localParts, nextLocalTime, todaysProgram } = require('./time');
@@ -91,8 +91,10 @@ async function produce(opts = {}) {
     log(`✅ KALİTE ${q.score}/100 · ${q.verdict}`); q.checks.forEach(c => log(`   ${c.ok ? '✓' : '✗'} ${c.txt}`));
     // 7) YouTube
     const up = cfg.upload || {};
-    const doUpload = up.enabled && !opts.noUpload && process.env.YT_REFRESH_TOKEN;
-    if (!doUpload) log(`⏸ YouTube yüklemesi atlandı (${opts.noUpload ? '--no-upload' : !up.enabled ? 'config.upload.enabled=false' : '.env YouTube bilgisi yok'})`);
+    let doUpload = up.enabled && !opts.noUpload && process.env.YT_REFRESH_TOKEN, chOk = true;
+    if (doUpload && cfg.channel) { try { const ch = await channelName(); chOk = ch.toLocaleLowerCase('tr') === cfg.channel.toLocaleLowerCase('tr'); if (!chOk) log(`⚠ Bağlı kanal "${ch}", "${cfg.channel}" değil — yükleme bekletildi (osmandj bagla)`); } catch (e) { log('⚠ kanal kontrolü yapılamadı: ' + e.message); } }
+    doUpload = doUpload && chOk;
+    if (!doUpload && chOk) log(`⏸ YouTube yüklemesi atlandı (${opts.noUpload ? '--no-upload' : !up.enabled ? 'config.upload.enabled=false' : '.env YouTube bilgisi yok'})`);
     else if (q.score < (up.minScore || 80)) log(`⏸ kalite ${q.score} < ${up.minScore} · yüklenmedi`);
     else {
       t = T();
