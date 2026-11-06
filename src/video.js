@@ -47,10 +47,10 @@ function makeAnalyser() {
   };
 }
 
-async function renderVideo({ masterWav, outMp4, setlog, dur, keys, channel, fps = 30, width = 1280, height = 720, anime = true, crf = 21, onProgress }) {
+async function renderVideo({ masterWav, outMp4, setlog, dur, keys, channel, fps = 30, width = 1280, height = 720, anime = true, crf = 21, theme = 'anime', onProgress }) {
   registerFonts();
   const core = makeCore({ OfflineAudioContext });
-  core.setOpts({ channel, animeOn: anime, animeDur: dur, klasikOn: true });
+  core.setOpts({ channel, animeOn: anime, animeDur: dur, klasikOn: true, visual: theme });
   const take = { setlog, dur, keys, video: null };
   const shots = core.buildEDL(take);
 
@@ -93,13 +93,13 @@ async function renderVideo({ masterWav, outMp4, setlog, dur, keys, channel, fps 
 }
 
 // Kapak görseli: setin en güçlü sahnesinden bir kare + büyük başlık
-async function renderThumb({ outJpg, setlog, dur, keys, channel, title, no, anime = true }) {
+async function renderThumb({ outJpg, setlog, dur, keys, channel, title, no, anime = true, theme = 'anime' }) {
   registerFonts();
   const core = makeCore({ OfflineAudioContext });
-  core.setOpts({ channel, animeOn: anime, animeDur: dur });
+  core.setOpts({ channel, animeOn: anime, animeDur: dur, visual: theme });
   const take = { setlog, dur, keys, video: null };
   const shots = core.buildEDL(take);
-  const pick = shots.find(s => s.sc === 'a_free') || shots.find(s => s.sc === 'a_dream') || shots.find(s => /drop|klasik/.test(s.sec.id)) || shots[0];
+  const pick = shots.find(s => s.sc === 's_bless') || shots.find(s => s.sc === 's_ritual') || shots.find(s => s.sc === 'a_free') || shots.find(s => s.sc === 'a_dream') || shots.find(s => /drop|klasik/.test(s.sec.id)) || shots[0];
   const canvas = createCanvas(1280, 720), c = canvas.getContext('2d');
   const fd = new Uint8Array(256).map((_, i) => Math.max(0, 230 - i * 1.6)), wd = new Uint8Array(512).map((_, i) => 128 + Math.round(60 * Math.sin(i / 9)));
   const at = Math.min(dur - 9, Math.max(pick.t0 + 3.6, pick.sec.t + 4.8, 6)); // alt yazı/bölüm etiketi geçtikten sonra

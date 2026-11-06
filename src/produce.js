@@ -44,8 +44,8 @@ async function produce(opts = {}) {
   if (fs.existsSync(lock) && Date.now() - fs.statSync(lock).mtimeMs < 10 * 3600e3) throw new Error('başka bir üretim sürüyor (out/.lock)');
   fs.writeFileSync(lock, String(process.pid));
   const dir = path.join(ROOT, 'out', `_uretim_${Date.now()}`); fs.mkdirSync(dir, { recursive: true });
-  const logf = path.join(dir, 'log.txt');
-  const log = (...a) => { const line = `[${new Date().toISOString().slice(11, 19)}] ${a.join(' ')}`; console.log(line); fs.appendFileSync(logf, line + '\n'); };
+  let logf = path.join(dir, 'log.txt');
+  const log = (...a) => { const line = `[${new Date().toISOString().slice(11, 19)}] ${a.join(' ')}`; console.log(line); try { fs.appendFileSync(logf, line + '\n'); } catch (e) {} };
   const report = { program: prog.name, minutes, genres, seed, brain: { gen: brain.gen, ...bo }, date: L.date, started: new Date().toISOString(), steps: {} };
   const save = () => fs.writeFileSync(path.join(dir, 'report.json'), JSON.stringify(report, null, 2));
   const T = () => { const t = Date.now(); return () => ((Date.now() - t) / 60000).toFixed(1) + ' dk'; };
@@ -78,7 +78,7 @@ async function produce(opts = {}) {
     const fileBase = `OSMAN-DJ_${String(no).padStart(4, '0')}`;
     const mp4 = path.join(dir, `${fileBase}.mp4`);
     const v = await renderVideo({ masterWav: mw, outMp4: mp4, setlog: info.setlog, dur: info.dur, keys, channel: cfg.channel,
-      fps: cfg.video.fps, width: cfg.video.width, height: cfg.video.height, anime: cfg.video.anime !== false, crf: cfg.video.crf,
+      fps: cfg.video.fps, width: cfg.video.width, height: cfg.video.height, anime: cfg.video.anime !== false, crf: cfg.video.crf, theme: cfg.video.theme || 'anime',
       onProgress: p => { const q = Math.floor(p * 10); if (q !== pct) { pct = q; log(`🎥 video %${q * 10}`); } } });
     report.steps.video = t(); report.video = v; save(); fs.unlinkSync(mw);
     log(`✅ video hazır (${report.steps.video}) · ${v.shots} kesme · ${v.scenes} sahne türü`);
@@ -86,7 +86,7 @@ async function produce(opts = {}) {
     const meta = await writeMeta({ name: nm.name, no, show: prog.name, keys, setlog: info.setlog, dur: info.dur, channel: cfg.channel, G });
     fs.writeFileSync(path.join(dir, 'youtube.txt'), `BAŞLIK:\n${meta.title}\n\nAÇIKLAMA:\n${meta.description}\n\nETİKETLER:\n${meta.tags.join(', ')}\n`);
     const thumb = path.join(dir, 'kapak.jpg');
-    await renderThumb({ outJpg: thumb, setlog: info.setlog, dur: info.dur, keys, channel: cfg.channel, title: nm.name, no, anime: cfg.video.anime !== false });
+    await renderThumb({ outJpg: thumb, setlog: info.setlog, dur: info.dur, keys, channel: cfg.channel, title: nm.name, no, anime: cfg.video.anime !== false, theme: cfg.video.theme || 'anime' });
     report.meta = meta; save();
     log(`🤖 metin (${meta.by}): ${meta.title}`);
     // 6) Kalite
@@ -112,20 +112,21 @@ async function produce(opts = {}) {
     report.finished = new Date().toISOString(); report.ok = true; save();
     const { dest } = addToArchive(dir, { no, name: nm.name, date: L.date, time: L.hm, program: prog.name, genres: keys.map(k => G[k].n), keys, brainGen: brain.gen, minutes,
       classics: kl, chapters: cps, score: q.score, youtube: report.youtube ? report.youtube.url : null, title: meta.title });
+    logf = path.join(dest, 'log.txt');
     log(`📼 arşivlendi: ${path.relative(ROOT, dest)}`);
-    await tg.photo(path.join(dest, 'kapak.jpg'), [
+    try { await tg.photo(path.join(dest, 'kapak.jpg'), [
       `🎉 <b>Yeni set hazır!</b>`,
       `#${String(no).padStart(4, '0')} <b>${tg.esc(nm.name)}</b>`,
       `${tg.esc(prog.name)} · ${keys.map(k => G[k].n).join(' → ')} · ${minutes} dk`,
       kl.length ? `🎻 ${tg.esc(kl.join(', '))}` : '',
-      `✅ Kalite ${q.score}/100 · ${(mi.after.I).toFixed(1)} LUFS · ${v.shots} kesme`,
+      `✅ Kalite ${q.score}/100 · ${(+mi.after.I).toFixed(1)} LUFS · ${v.shots} kesme`,
       report.youtube ? `📺 ${report.youtube.url}${report.youtube.publishAt ? ' · yayın ' + new Date(report.youtube.publishAt).toLocaleString('tr-TR', { timeZone: tz }) : ''}` : '📺 YouTube: henüz yüklenmedi (arşivde bekliyor)',
       `⏱ ses ${report.steps.audio} · video ${report.steps.video}`,
-    ].filter(Boolean).join('\n'));
-    pruneLocal(+(cfg.archive && cfg.archive.keepLocal) || 30, log);
+    ].filter(Boolean).join('\n')); } catch (e) { log('⚠ Telegram bildirimi gönderilemedi: ' + e.message); }
+    try { pruneLocal(+(cfg.archive && cfg.archive.keepLocal) || 30, log); } catch (e) { log('⚠ arşiv temizliği: ' + e.message); }
     return { ...report, dir: dest };
   } catch (e) {
-    report.error = String(e.stack || e); report.ok = false; save(); log('❌ ' + e.message);
+    report.error = String(e.stack || e); report.ok = false; try { save(); } catch {} log('❌ ' + e.message);
     await tg.send(`❌ <b>OSMAN DJ üretim hatası</b>\n${tg.esc(prog.name)} · ${minutes} dk\n<code>${tg.esc(String(e.message).slice(0, 500))}</code>\nAyrıntı: out/${path.basename(dir)}/log.txt`);
     throw e;
   } finally { try { fs.unlinkSync(lock); } catch (e) {} }

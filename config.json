@@ -41,7 +41,8 @@
     "height": 720,
     "fps": 30,
     "crf": 21,
-    "anime": true
+    "anime": true,
+    "theme": "saman"
   },
   "upload": {
     "enabled": true,
