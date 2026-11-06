@@ -19,7 +19,7 @@ function planSet(core, o) {
   if (o.bpm) for (const k of Object.keys(o.bpm)) if (G[k]) G[k].bpm = o.bpm[k];
   const TL = o.transLen || 64;
   const R = rng(o.seed || Date.now());
-  core.setOpts({ klasikOn: o.klasik !== false, klasikSel: -1, motBase: Math.floor(R() * 6), animeOn: o.anime !== false, animeDur: T });
+  core.setOpts({ vseed: (o.seed || 1) % 100000, klasikOn: o.klasik !== false, klasikSel: -1, motBase: Math.floor(R() * 6), animeOn: o.anime !== false, animeDur: T });
 
   let t = 0.1, step = 0, arrStep = 0, cur = genres[0], bpm = G[cur].bpm, trans = null, pendTrans = null, jump = false, lastKey = '';
   const steps = [], setlog = [];

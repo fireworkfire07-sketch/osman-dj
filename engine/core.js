@@ -38,12 +38,15 @@ const G={
  semah:{n:'Alevi Semah Tekno',ic:'🕯',bpm:112,c:'#f472b6',c2:'#500724',k:[1,0,0,1,0,0,1,0,0,1,0,0,1,0,1,0],b:[1,0,0,1,0,0,1,0,0,1,0,0,1,0,1,0],h:[1,1,0,1,1,0,1,1,0,1,1,0,1,0,1,0],cl:[0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0],
    l:[1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,0],mel:[0,2,4,5,4,2,1,0,4,3,2,1],sc:HUSEYNI,oct:12,wave:'triangle',ll:1,bn:[33,33,36,31],cut:600,
    perc:'darbuka',dp:DARB_AKSAK,ai:'baglama',brk:'ney',ki:'baglama',synth:false,tag:'Semah Ritmi · Aksak · Deyiş Ruhu'},
+ afunk:{n:'Anadolu Funk',ic:'🕺',bpm:110,c:'#f97316',c2:'#3a1204',k:[1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0],b:[1,0,0,1,0,0,1,0,1,0,1,0,0,1,0,1],h:[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],cl:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1],
+   l:[1,0,0,1,0,0,1,0,0,0,1,0,1,0,0,0],mel:[0,2,3,4,2,3,1,0,4,5,4,2],sc:HICAZ,oct:0,wave:'square',ll:1,bn:[38,38,43,41],cut:1400,pad:true,
+   perc:'darbuka',dp:DARB,ai:'baglama',brk:'baglama',ki:'baglama',synth:false,funk:true,tag:'70ler Anadolu Rock · Funk · Psikedelik'},
  saman:{n:'Şaman Trans',ic:'🪶',bpm:118,c:'#a3e635',c2:'#1a2e05',k:[1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],b:[1,0,0,0,0,0,1,0,1,0,0,0,0,0,1,0],h:R4([0,0,1,0]),cl:null,
    l:[1,0,0,1,0,0,1,0,0,0,1,0,1,0,0,0],mel:[0,2,3,4,3,2,1,0,4,5,4,2],sc:[57,60,62,64,67,69],oct:12,wave:'triangle',ll:1.5,bn:[38,38,38,36],cut:400,
    perc:'def',dp:['O',0,0,'O',0,0,0,0,'O',0,0,'O',0,0,'r',0],ai:'kopuz',brk:'ney',ki:'ney',synth:false,tag:'Şaman Defi · Didgeridoo · Ağız Kopuzu'},
 };
 const DIDJ={saman:'all',psy:'ib',semah:'ib',neset:'ib',tech:'b'};
-const NEXT={psy:['tech','saman'],tech:['psy','semah'],arock:['neset','semah'],dh:['psy','neset'],neset:['saman','arock'],semah:['saman','arock'],saman:['semah','psy']};
+const NEXT={afunk:['arock','neset','semah'],psy:['tech','saman'],tech:['psy','semah'],arock:['afunk','neset','semah'],dh:['psy','neset'],neset:['saman','arock'],semah:['saman','arock'],saman:['semah','psy']};
 
 /* ═══ KLASİK MOTİFLER (public domain) ═══ */
 const MOT=[
@@ -219,7 +222,7 @@ function sHang(ctx,out,t,m,vol=.16){
     const o=ctx.createOscillator();o.type='sine';o.frequency.value=f*r;const e=ctx.createGain();e.gain.setValueAtTime(.0001,t);e.gain.exponentialRampToValueAtTime(vol*a,t+.006);e.gain.exponentialRampToValueAtTime(.0001,t+d);
     o.connect(e);e.connect(g);o.start(t);o.stop(t+d+.05);});
   nz(ctx,g,t,'lowpass',1400,.7,vol*.35,.03);}
-const HANG={dh:'ibg',neset:'ibg',saman:'ibg',semah:'b',psy:'b',arock:'b'};
+const HANG={afunk:'b',dh:'ibg',neset:'ibg',saman:'ibg',semah:'b',psy:'b',arock:'b'};
 const HPAT=[0,0,0,1,0,0,1,0,1,0,1,0,0,1,0,0];const HSEQ=[0,3,4,2,5,4,1,3,6,4,2,5];
 
 const percFn=pn=>pn==='davul'?sDavul:pn==='def'?sDef:sDarb;
@@ -236,6 +239,18 @@ function playInst(ctx,out,name,t,m,len,sd,vol=1){
 const TAKSIM=[0,1,2,3,2,1,2,4,3,2,1,0,1,2,4,5,4,3,2,1,0];
 
 /* ═══ HER 16'LIK ADIM ═══ */
+/* ═══ VARYASYON MOTORU: her döngüde yeni melodi cümlesi, ritim ve ton — DJ asla aynı çalmaz ═══ */
+let vseed=0;let VC={},VCn=0;
+const LBANK=[[1,0,1,1,0,1,0,1,1,0,1,0,0,1,1,0],[1,0,0,1,0,0,1,0,0,0,1,0,1,0,0,0],[1,0,1,0,1,0,0,1,0,1,0,0,1,0,1,0],[1,1,0,1,0,0,1,0,1,1,0,0,1,0,0,1],[0,0,1,0,1,0,1,0,0,0,1,0,1,0,1,1],[1,0,0,0,1,0,1,1,0,0,1,0,0,1,0,0],[1,0,1,0,0,0,1,0,1,0,1,0,0,0,1,0],[0,1,0,1,1,0,0,1,0,1,0,1,1,0,0,0]];
+function variant(key,cyc,sec){const id=key+'|'+cyc+'|'+sec;if(VC[id])return VC[id];if(++VCn>800){VC={};VCn=0;}
+  const g=G[key],n=g.sc.length,h=k=>hsh(vseed*7919+cyc*1301+k*17+key.charCodeAt(0)*31+(sec==='drop2'?7777:0));
+  if(h(0)<.2)return VC[id]={mel:g.mel.map(x=>x%n),l:g.l,tr:0};   // ara sıra türün imza melodisine döner
+  const A=[];let p=Math.floor(h(1)*n);for(let i=0;i<8;i++){p=Math.max(0,Math.min(n-1,p+Math.round((h(10+i)-.5)*4)));A.push(p);}
+  const B=A.map((x,i)=>i>=4?Math.max(0,Math.min(n-1,x+Math.round((h(30+i)-.5)*5))):x);
+  const C=A.map((x,i)=>i<4?x:Math.max(0,Math.min(n-1,A[0]+(i-4))));
+  const mel=h(6)<.5?[...A,...B]:[...A,...B,...A,...C];
+  const l=h(2)<.3?g.l:LBANK[Math.floor(h(3)*LBANK.length)];
+  return VC[id]={mel,l,tr:[0,0,0,1,2,-1][Math.floor(h(4)*6)]};}
 function playStep(ctx,out,key,i,as,info,t,sd){
   const g=G[key],s=as%16,S=info.id,bar=info.cb;
   const full=S==='drop'||S==='drop2'||S==='klasik'||S==='groove';
@@ -262,13 +277,14 @@ function playStep(ctx,out,key,i,as,info,t,sd){
     else percFn(pn)(ctx,out,t,pv);}
   if(full&&info.bar%8===7&&s>=12&&INST.darbuka)sDarb(ctx,out,t,s===15?'D':s===13?'S':'T',.8); // darbuka fill
   // MELODİ — her turda kayarak değişir
-  const mi=i+info.cyc*3+Math.floor(info.cb/16)*2;
-  const note=g.sc[g.mel[mi%g.mel.length]%g.sc.length]+g.oct;
+  const V=variant(key,info.cyc,info.base||S),L=V.l;
+  const mi=i+Math.floor(info.cb/16)*2,nn=g.sc.length;
+  const note=g.sc[((V.mel[mi%V.mel.length]+V.tr)%nn+nn)%nn]+g.oct;
   if((S==='klasik'||(S==='build2'&&info.motif))&&info.motif){
     const ev=info.motif.on[(as-info.secStart)%64];
     if(ev){const v=S==='build2'?.5:1;playInst(ctx,out,g.ki,t,ev.m,ev.len*sd,sd,v);if(S==='klasik')sLead(ctx,out,t,ev.m-12,'triangle',ev.len*sd,.06);}
   } else if(full||(build&&info.bar>=2)){
-    if(g.l[s]&&(bar%4!==3||s<8)){
+    if(L[s]&&(bar%4!==3||s<8)){
       if(g.synth||!INST[g.ai])sLead(ctx,out,t,note,g.wave,sd*g.ll,build?.07:.11);
       if(INST[g.ai]&&(full||!g.synth)){if(g.ai==='zurna'){if(bar%2===1)playInst(ctx,out,'zurna',t,note,sd*2,sd);}
         else if(g.ai==='ney'){if(s%4===0)playInst(ctx,out,'ney',t,note,sd*4,sd);}else playInst(ctx,out,g.ai,t,note,sd*g.ll,sd,g.synth?.6:1);}
@@ -277,7 +293,7 @@ function playStep(ctx,out,key,i,as,info,t,sd){
   // TAKSİM — break'te ney/bağlama solo
   if(S==='break'){const tk=Math.floor(as/4);if(s%4===0||(g.brk==='baglama'&&s%4===2&&tk%3===0)){const idx=TAKSIM[tk%TAKSIM.length];playInst(ctx,out,g.brk,t,g.sc[idx%g.sc.length]+12,sd*(g.brk==='ney'?4:2),sd);}}
   // GROOVE — Anadolu enstrümanı tek başına melodi
-  if(S==='groove'&&g.l[s]&&info.bar>=2&&INST[g.ai])playInst(ctx,out,g.ai,t,note,sd*2,sd,.8);
+  if(S==='groove'&&L[s]&&info.bar>=2&&INST[g.ai])playInst(ctx,out,g.ai,t,note,sd*2,sd,.8);
   // 🪵 DİDGERİDOO — şamanik zemin
   const dj=DIDJ[key];if(INST.didj&&dj&&s===0&&bar%2===0){kopRoot=g.bn[0]%12+36;
     if(dj==='all'&&!last||(dj==='ib'&&(intro||brk||S==='groove'))||(dj==='b'&&brk))sDidj(ctx,out,t,kopRoot,sd*32,key==='saman'?.085:.06,sd);}
@@ -292,9 +308,30 @@ function playStep(ctx,out,key,i,as,info,t,sd){
   // DRONE + PAD
   if((intro||S==='groove')&&s===0&&INST.baglama)sBag(ctx,out,t,g.bn[0]+24,.18);
   if(s===0&&bar%2===0&&(g.pad||brk))sPad(ctx,out,t,bn+24,sd*32,brk?.06:.04);
+  // 🕺 70'ler funk katmanı
+  funkLayer(ctx,out,key,as,info,t,sd,note,bn);
   // 🗣 ŞAMAN SESİ
   vocals(ctx,out,key,as,info,t,sd);
 }
+
+
+/* ═══ 70'LER: fuzz-wah gitar + Hammond org (Anadolu Funk) ═══ */
+function sWah(ctx,out,t,m,len,vol=.07){const f=mf(m),o=ctx.createOscillator();o.type='sawtooth';o.frequency.value=f;const o2=ctx.createOscillator();o2.type='square';o2.frequency.value=f*1.004;
+  const sh=ctx.createWaveShaper();const cv=new Float32Array(256);for(let i=0;i<256;i++){const x=i/128-1;cv[i]=Math.tanh(x*4);}sh.curve=cv;
+  const bp=ctx.createBiquadFilter();bp.type='bandpass';bp.Q.value=6;bp.frequency.setValueAtTime(450,t);bp.frequency.exponentialRampToValueAtTime(2200,t+Math.min(.12,len*.5));bp.frequency.exponentialRampToValueAtTime(600,t+len);
+  const g=ctx.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.008);g.gain.exponentialRampToValueAtTime(.001,t+len);
+  o.connect(sh);o2.connect(sh);sh.connect(bp);bp.connect(g);g.connect(out);o.start(t);o2.start(t);o.stop(t+len+.02);o2.stop(t+len+.02);}
+function sOrgan(ctx,out,t,m,len,vol=.035){const g=ctx.createGain();g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(vol,t+.02);g.gain.setValueAtTime(vol,t+len*.85);g.gain.linearRampToValueAtTime(.0001,t+len);
+  const trem=ctx.createOscillator(),tg=ctx.createGain();trem.frequency.value=6.2;tg.gain.value=vol*.35;trem.connect(tg);tg.connect(g.gain);trem.start(t);trem.stop(t+len+.05);
+  [[0,1],[7,.5],[12,.8],[19,.3],[24,.25]].forEach(([iv,a])=>[0,4,7].forEach(ch=>{const o=ctx.createOscillator();o.type='sine';o.frequency.value=mf(m+iv+ch);const og=ctx.createGain();og.gain.value=a*.33;o.connect(og);og.connect(g);o.start(t);o.stop(t+len+.05);}));g.connect(out);}
+function funkLayer(ctx,out,key,as,info,t,sd,note,bn){const g=G[key];if(!g.funk)return;const S=info.id,s=as%16;
+  const full=S==='drop'||S==='drop2'||S==='groove'||S==='klasik',build=S==='build'||S==='build2';
+  // fuzz-wah gitar riffi (Erkin Koray / Cem Karaca havası)
+  if((full||build&&info.bar>=2)&&[0,3,6,10,12].includes(s))sWah(ctx,out,t,note-12,sd*(s===12?3:1.6),build?.05:.075);
+  // org akorları: her bar başı, taksimde uzun
+  if(s===0&&(full||S==='break'||S==='intro'&&info.bar>=2))sOrgan(ctx,out,t,bn+24,sd*(S==='break'?16:8),S==='break'?.045:.03);
+  // disko açık hat (her 8'lik arkası)
+  if(full&&s%4===2)sHat(ctx,out,t,true);}
 
 /* ═══ BAR BAŞI: filtre, riser, crash ═══ */
 function autoBar(ctx,post,filt,info,t,bd,maxC){const S=info.id;let tg=maxC;
@@ -490,7 +527,7 @@ function sThroat(ctx,out,t,m,len,vol){const f=mf(m),o=ctx.createOscillator();o.t
   const bp=ctx.createBiquadFilter();bp.type='bandpass';bp.Q.value=26;const seq=[8,9,10,12,10,9,8,6];const st=len/seq.length;bp.frequency.setValueAtTime(f*seq[0],t);seq.forEach((h,k)=>bp.frequency.setTargetAtTime(f*h,t+k*st,.06));const hg=ctx.createGain();hg.gain.value=5;
   const env=ctx.createGain();env.gain.setValueAtTime(.0001,t);env.gain.linearRampToValueAtTime(vol,t+.5);env.gain.setValueAtTime(vol,t+len-.6);env.gain.linearRampToValueAtTime(.0001,t+len);
   o.connect(lp);lp.connect(base);base.connect(env);o.connect(bp);bp.connect(hg);hg.connect(env);env.connect(out);o.start(t);o.stop(t+len+.05);}
-const VOX={saman:'ibdg',semah:'ibg',psy:'ibd',neset:'ibg',tech:'b',dh:'ib',arock:'bg'};
+const VOX={afunk:'bg',saman:'ibdg',semah:'ibg',psy:'ibd',neset:'ibg',tech:'b',dh:'ib',arock:'bg'};
 const CHANT=[[0,'e',0,2],[2,'a',2,2],[4,'e',0,2],[6,'a',1,2],[8,'o',0,6],[16,'e',2,2],[18,'a',3,2],[20,'e',2,2],[22,'a',1,2],[24,'u',0,8]];
 function vocals(ctx,out,key,as,info,t,sd){if(!INST.vokal)return;const v=VOX[key];if(!v)return;const g=G[key],S=info.id,s=as%16,bar=info.cb,root=g.sc[0]-12-(g.oct?0:0);
   const nt=i=>g.sc[i%g.sc.length]-12;
@@ -593,7 +630,7 @@ function showMont(t,lab){$('mv_'+t.id).innerHTML=`<video controls src="${URL.cre
 
 
 return {G,MOT,SEC,INST,INST_N,CHN,HICAZ,HUSEYNI,NEXT,secInfo,playStep,autoBar,renderShot,buildEDL,chapters,fmt,SMP,SMPK,normBuf,
-  setOpts(o){if('klasikOn' in o)klasikOn=o.klasikOn;if('klasikSel' in o)klasikSel=o.klasikSel;if('motBase' in o)motBase=o.motBase;if('animeOn' in o)animeOn=o.animeOn;if('visual' in o)visual=o.visual;
+  setOpts(o){if('klasikOn' in o)klasikOn=o.klasikOn;if('klasikSel' in o)klasikSel=o.klasikSel;if('motBase' in o)motBase=o.motBase;if('animeOn' in o)animeOn=o.animeOn;if('visual' in o)visual=o.visual;if('vseed' in o){vseed=o.vseed|0;VC={};}
     if('animeDur' in o)animeDur=o.animeDur;if('useSmp' in o)useSmp=o.useSmp;if('smpReady' in o)smpReady=o.smpReady;if('channel' in o)CHANNEL=o.channel;},
   setCustom(name,buf,root){CUSTOM[name]={buf,root};}};
 };

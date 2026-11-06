@@ -52,60 +52,52 @@
   },
   "programs": [
     {
-      "name": "Gece Ritüeli",
-      "genres": [
-        "saman",
-        "psy",
-        "tech"
-      ],
-      "publish": "21:00"
-    },
-    {
-      "name": "Anadolu Rock Seansı",
+      "name": "70'ler Psikedelik",
       "genres": [
         "arock",
-        "neset",
+        "afunk",
+        "neset"
+      ],
+      "publish": "20:00"
+    },
+    {
+      "name": "Anadolu Funk Gecesi",
+      "genres": [
+        "afunk",
+        "arock",
         "semah"
       ],
       "publish": "20:00"
     },
     {
-      "name": "Antalya Gün Batımı",
-      "genres": [
-        "dh",
-        "neset",
-        "saman"
-      ],
-      "publish": "19:00"
-    },
-    {
-      "name": "Semah Gecesi",
+      "name": "Semah ve Funk",
       "genres": [
         "semah",
-        "saman",
-        "psy"
+        "afunk",
+        "arock"
       ],
-      "publish": "21:00"
+      "publish": "20:00"
     },
     {
-      "name": "Berlin'den Bozkıra",
+      "name": "Plak Dükkanı",
       "genres": [
-        "tech",
-        "psy",
-        "semah"
+        "neset",
+        "afunk",
+        "arock"
       ],
-      "publish": "22:00"
+      "publish": "20:00"
+    },
+    {
+      "name": "Şaman Ateşi",
+      "genres": [
+        "saman",
+        "semah",
+        "afunk"
+      ],
+      "publish": "20:00"
     }
   ],
-  "weekly": {
-    "pzt": "Anadolu Rock Seansı",
-    "sal": "Antalya Gün Batımı",
-    "car": "Semah Gecesi",
-    "per": "Gece Ritüeli",
-    "cum": "Berlin'den Bozkıra",
-    "cmt": "Gece Ritüeli",
-    "paz": "Antalya Gün Batımı"
-  },
+  "weekly": {},
   "runners": {
     "repos": [
       "fireworkfire07-sketch/shp-engine",
@@ -125,5 +117,15 @@
   "arge": {
     "enabled": true,
     "time": "05:00"
+  },
+  "taste": {
+    "afunk": 2.2,
+    "arock": 2.0,
+    "neset": 1.2,
+    "semah": 1.2,
+    "saman": 0.8,
+    "dh": 0.6,
+    "psy": 0.25,
+    "tech": 0.15
   }
 }

@@ -66,7 +66,7 @@ function tick() {
     const days = P.days || ['pzt', 'car', 'cum', 'paz'];
     if (days.includes(WDTR[L.wd]) && L.hm >= P.time && s.lastDaily !== L.date) {
       s.lastDaily = L.date; writeSt(s);
-      const prog = beyin.pickProgram(beyin.load(), cfg.programs, Date.now() % 1e9);
+      const prog = beyin.pickProgram(beyin.load(), cfg.programs, cfg.taste || {});
       runOne(prog, P.publish || prog.publish, `haftalık üretim (${days.join(', ')})`);
     }
     return;

@@ -8,10 +8,10 @@ const DIR = path.join(ROOT, 'out', 'arge');
 const FILE = path.join(DIR, 'beyin.json');
 
 // Türlerin güvenli tempo aralıkları (Ar-Ge bu sınırların dışına çıkamaz)
-const RANGE = { psy: [138, 148], tech: [125, 140], arock: [96, 120], dh: [118, 126], neset: [88, 104], semah: [100, 120], saman: [100, 128] };
-const BASE_BPM = { psy: 145, tech: 135, arock: 108, dh: 122, neset: 96, semah: 112, saman: 118 };
+const RANGE = { afunk: [102, 118], psy: [138, 148], tech: [125, 140], arock: [96, 120], dh: [118, 126], neset: [88, 104], semah: [100, 120], saman: [100, 128] };
+const BASE_BPM = { afunk: 110, psy: 145, tech: 135, arock: 108, dh: 122, neset: 96, semah: 112, saman: 118 };
 // Türden türe doğal geçiş komşuları (motordaki NEXT ile aynı mantık)
-const NEXT = { psy: ['tech', 'saman', 'dh'], tech: ['psy', 'semah'], arock: ['neset', 'semah'], dh: ['psy', 'neset', 'saman'], neset: ['saman', 'arock', 'dh'], semah: ['saman', 'arock', 'tech'], saman: ['semah', 'psy', 'dh'] };
+const NEXT = { afunk: ['arock', 'neset', 'semah'], psy: ['tech', 'saman', 'dh'], tech: ['psy', 'semah'], arock: ['afunk', 'neset', 'semah'], dh: ['psy', 'neset', 'saman'], neset: ['afunk', 'saman', 'arock', 'dh'], semah: ['afunk', 'saman', 'arock', 'tech'], saman: ['semah', 'afunk', 'psy', 'dh'] };
 
 function def() {
   const genre = {};
@@ -32,14 +32,15 @@ function save(b) { fs.mkdirSync(DIR, { recursive: true }); b.updated = new Date(
 function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 
 // Uzun set için tür sırası: programın türleriyle başlar, sonra beynin ağırlıklarına göre komşu türlere akar.
-function pickGenres(b, prog, minutes, seed) {
+function pickGenres(b, prog, minutes, seed, taste = {}) {
   const R = rng(seed || Date.now());
   const n = clamp(Math.round(minutes / (b.segMin || 22)), 3, 8);
   const seq = prog.genres.filter(g => BASE_BPM[g]).slice(0, n);
   while (seq.length < n) {
     const cur = seq[seq.length - 1], prev = seq[seq.length - 2];
-    const cands = (NEXT[cur] || Object.keys(BASE_BPM)).filter(g => g !== cur && g !== prev);
-    const ws = cands.map(g => (b.genre[g] ? b.genre[g].w : 1));
+    let cands = (NEXT[cur] || Object.keys(BASE_BPM)).filter(g => g !== cur && g !== prev && !(taste[g] != null && taste[g] < 0.3));
+    if (!cands.length) cands = Object.keys(BASE_BPM).filter(g => g !== cur && !(taste[g] != null && taste[g] < 0.3));
+    const ws = cands.map(g => (b.genre[g] ? b.genre[g].w : 1) * (taste[g] != null ? taste[g] : 1));
     let r = R() * ws.reduce((a, c) => a + c, 0), pick = cands[0];
     for (let i = 0; i < cands.length; i++) { r -= ws[i]; if (r <= 0) { pick = cands[i]; break; } }
     seq.push(pick);
@@ -55,9 +56,9 @@ function planOpts(b) {
 }
 
 // Programı beynin tür ağırlıklarına göre seç (iyi giden türler daha sık çalınır, ama hepsi döner)
-function pickProgram(b, programs) {
+function pickProgram(b, programs, taste = {}) {
   const R = Math.random;
-  const ws = programs.map(p => { const g = p.genres.filter(x => b.genre[x]); return g.length ? g.reduce((a, x) => a + b.genre[x].w, 0) / g.length : 1; });
+  const ws = programs.map(p => { const g = p.genres.filter(x => b.genre[x]); return g.length ? g.reduce((a, x) => a + b.genre[x].w * (taste[x] != null ? taste[x] : 1), 0) / g.length : 1; });
   let r = R() * ws.reduce((a, c) => a + c, 0);
   for (let i = 0; i < programs.length; i++) { r -= ws[i]; if (r <= 0) return programs[i]; }
   return programs[0];

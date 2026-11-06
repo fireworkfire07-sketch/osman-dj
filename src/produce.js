@@ -37,7 +37,7 @@ async function produce(opts = {}) {
   const M = opts.minutes || prog.minutes || cfg.minutes || 60;
   const minutes = Array.isArray(M) ? M[0] + 5 * Math.floor(((seed % 1000) / 1000) * ((M[1] - M[0]) / 5 + 1)) : +M;
   const brain = beyin.load(), bo = beyin.planOpts(brain);
-  const genres = opts.genres ? String(opts.genres).split(',') : (minutes > 75 ? beyin.pickGenres(brain, prog, minutes, seed) : prog.genres);
+  const genres = opts.genres ? String(opts.genres).split(',') : (minutes > 75 ? beyin.pickGenres(brain, prog, minutes, seed, cfg.taste || {}) : prog.genres);
   const L = localParts(new Date(), tz);
   fs.mkdirSync(path.join(ROOT, 'out'), { recursive: true });
   const lock = path.join(ROOT, 'out', '.lock');
