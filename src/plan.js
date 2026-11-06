@@ -19,7 +19,7 @@ function planSet(core, o) {
   if (o.bpm) for (const k of Object.keys(o.bpm)) if (G[k]) G[k].bpm = o.bpm[k];
   const TL = o.transLen || 64;
   const R = rng(o.seed || Date.now());
-  core.setOpts({ vseed: (o.seed || 1) % 100000, klasikOn: o.klasik !== false, klasikSel: -1, motBase: Math.floor(R() * 6), animeOn: o.anime !== false, animeDur: T });
+  core.setOpts({ calm: genres.every(g => G[g].sifa), vseed: (o.seed || 1) % 100000, klasikOn: o.klasik !== false, klasikSel: -1, motBase: Math.floor(R() * 6), animeOn: o.anime !== false, animeDur: T });
 
   let t = 0.1, step = 0, arrStep = 0, cur = genres[0], bpm = G[cur].bpm, trans = null, pendTrans = null, jump = false, lastKey = '';
   const steps = [], setlog = [];
@@ -46,7 +46,7 @@ function planSet(core, o) {
       const key = info.id + '|' + cur + '|' + (info.motif ? info.motif.p : '');
       if (key !== lastKey) {
         lastKey = key;
-        setlog.push({ t, key: cur, id: info.id, n: info.n, motif: info.id === 'klasik' ? info.motif : null });
+        setlog.push({ t, key: cur, freq: o.freqs ? o.freqs[Math.min(o.freqs.length - 1, Math.floor(t / (T / o.freqs.length)))] : undefined, id: info.id, n: info.n, motif: info.id === 'klasik' ? info.motif : null });
         // yeni döngünün başında: takvime göre sıradaki türe geç
         if (!trans && info.base === 'intro' && info.cyc > 0) {
           const want = genres[Math.min(genres.length - 1, Math.floor((t + 20) / per))];
@@ -54,6 +54,7 @@ function planSet(core, o) {
         }
       }
     }
+    if (o.freqs && o.freqs.length) info.freq = o.freqs[Math.min(o.freqs.length - 1, Math.floor(t / (T / o.freqs.length)))];
     steps.push({ t, key: cur, i: step, as, info, sd, bpm });
     t += sd; step++; if (!trans) arrStep++;
   }

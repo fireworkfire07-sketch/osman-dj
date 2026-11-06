@@ -61,12 +61,20 @@ function tick() {
   // Ar-Ge: her gün bir kez (üretimle paralel çalışabilir, hafif)
   const at = (cfg.arge && cfg.arge.time) || '05:00';
   if ((!cfg.arge || cfg.arge.enabled !== false) && !argeRunning && L.hm >= at && s.lastArge !== L.date) { s.lastArge = L.date; writeSt(s); runArge(); }
+  // ek görevler (ör. gündüz şifa müziği): belirli günlerde belirli saatte belirli program
+  for (const [i, x] of (P.extra || []).entries()) {
+    const key = 'lastExtra' + i;
+    if ((x.days || []).includes(WDTR[L.wd]) && L.hm >= x.time && s[key] !== L.date) {
+      const prog = cfg.programs.find(p => p.name === x.program); if (!prog) continue;
+      s[key] = L.date; writeSt(s); runOne(prog, x.publish || prog.publish, `ek görev: ${prog.name}`); return;
+    }
+  }
   if (P.mode === 'haftalik') {
     // haftada belirli günler, günde 1 uzun set; programı beyin seçer
     const days = P.days || ['pzt', 'car', 'cum', 'paz'];
     if (days.includes(WDTR[L.wd]) && L.hm >= P.time && s.lastDaily !== L.date) {
       s.lastDaily = L.date; writeSt(s);
-      const prog = beyin.pickProgram(beyin.load(), cfg.programs, cfg.taste || {});
+      const prog = beyin.pickProgram(beyin.load(), cfg.programs.filter(p => !p.gunduz), cfg.taste || {});
       runOne(prog, P.publish || prog.publish, `haftalık üretim (${days.join(', ')})`);
     }
     return;

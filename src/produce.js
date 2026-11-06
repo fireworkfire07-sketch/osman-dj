@@ -56,7 +56,7 @@ async function produce(opts = {}) {
     let t = T(), pct = -1;
     const studio = await openStudio({ channel: cfg.channel });
     const raw = path.join(dir, 'raw.wav');
-    const info = await renderAudio(studio, { minutes, genres, seed, klasik: prog.klasik !== false, anime: cfg.video.anime !== false, klasikEvery: bo.klasikEvery || cfg.klasikEvery || 3, bpm: bo.bpm, transLen: bo.transLen }, raw,
+    const info = await renderAudio(studio, { minutes, genres, seed, klasik: prog.klasik !== false, anime: cfg.video.anime !== false, klasikEvery: bo.klasikEvery || cfg.klasikEvery || 3, bpm: bo.bpm, transLen: bo.transLen, freqs: prog.freqs }, raw,
       p => { const q = Math.floor(p * 10); if (q !== pct) { pct = q; log(`🎛 ses %${q * 10}`); } }, +cfg.workers || os.cpus().length);
     await studio.browser.close();
     report.steps.audio = t(); report.setlog = info.setlog; save();
@@ -78,7 +78,7 @@ async function produce(opts = {}) {
     const fileBase = `OSMAN-DJ_${String(no).padStart(4, '0')}`;
     const mp4 = path.join(dir, `${fileBase}.mp4`);
     const v = await renderVideo({ masterWav: mw, outMp4: mp4, setlog: info.setlog, dur: info.dur, keys, channel: cfg.channel,
-      fps: cfg.video.fps, width: cfg.video.width, height: cfg.video.height, anime: cfg.video.anime !== false, crf: cfg.video.crf, theme: cfg.video.theme || 'anime',
+      fps: cfg.video.fps, width: cfg.video.width, height: cfg.video.height, anime: cfg.video.anime !== false, crf: cfg.video.crf, theme: prog.theme || cfg.video.theme || 'anime',
       onProgress: p => { const q = Math.floor(p * 10); if (q !== pct) { pct = q; log(`🎥 video %${q * 10}`); } } });
     report.steps.video = t(); report.video = v; save(); fs.unlinkSync(mw);
     log(`✅ video hazır (${report.steps.video}) · ${v.shots} kesme · ${v.scenes} sahne türü`);
@@ -86,7 +86,7 @@ async function produce(opts = {}) {
     const meta = await writeMeta({ name: nm.name, no, show: prog.name, keys, setlog: info.setlog, dur: info.dur, channel: cfg.channel, G });
     fs.writeFileSync(path.join(dir, 'youtube.txt'), `BAŞLIK:\n${meta.title}\n\nAÇIKLAMA:\n${meta.description}\n\nETİKETLER:\n${meta.tags.join(', ')}\n`);
     const thumb = path.join(dir, 'kapak.jpg');
-    await renderThumb({ outJpg: thumb, setlog: info.setlog, dur: info.dur, keys, channel: cfg.channel, title: nm.name, no, anime: cfg.video.anime !== false, theme: cfg.video.theme || 'anime' });
+    await renderThumb({ outJpg: thumb, setlog: info.setlog, dur: info.dur, keys, channel: cfg.channel, title: nm.name, no, anime: cfg.video.anime !== false, theme: prog.theme || cfg.video.theme || 'anime' });
     report.meta = meta; save();
     log(`🤖 metin (${meta.by}): ${meta.title}`);
     // 6) Kalite

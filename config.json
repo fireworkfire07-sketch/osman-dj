@@ -25,7 +25,18 @@
       "cum",
       "paz"
     ],
-    "publish": "20:00"
+    "publish": "20:00",
+    "extra": [
+      {
+        "days": [
+          "sal",
+          "per",
+          "cmt"
+        ],
+        "time": "07:00",
+        "program": "Şifa Yolculuğu 528 · 417 · 174 Hz"
+      }
+    ]
   },
   "archive": {
     "keepLocal": 40
@@ -96,6 +107,22 @@
         "afunk"
       ],
       "publish": "20:00"
+    },
+    {
+      "name": "Şifa Yolculuğu 528 · 417 · 174 Hz",
+      "genres": [
+        "sifa"
+      ],
+      "minutes": 180,
+      "freqs": [
+        528,
+        417,
+        174
+      ],
+      "theme": "doga",
+      "klasik": false,
+      "gunduz": true,
+      "publish": "10:00"
     }
   ],
   "weekly": {},
