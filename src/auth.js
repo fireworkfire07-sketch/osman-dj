@@ -14,7 +14,7 @@ const id = process.env.YT_CLIENT_ID || get('YT_CLIENT_ID'), sec = process.env.YT
 if (!id || !sec) { console.error('❌ Önce .env içine YT_CLIENT_ID ve YT_CLIENT_SECRET yaz (README: YouTube bağlama).'); process.exit(1); }
 const REDIRECT = 'http://127.0.0.1:8085';
 const url = 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({
-  client_id: id, redirect_uri: REDIRECT, response_type: 'code', access_type: 'offline', prompt: 'consent',
+  client_id: id, redirect_uri: REDIRECT, response_type: 'code', access_type: 'offline', prompt: 'select_account consent',
   scope: 'https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube',
 });
 http.createServer(async (req, res) => {
