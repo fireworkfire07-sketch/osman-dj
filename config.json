@@ -48,7 +48,8 @@
     "enabled": true,
     "privacy": "private",
     "minScore": 80,
-    "playlistId": ""
+    "playlistId": "",
+    "approval": true
   },
   "programs": [
     {

@@ -103,8 +103,9 @@ async function produce(opts = {}) {
     else {
       t = T();
       const slot = opts.publish || prog.publish;
-      const publishAt = slot ? nextLocalTime(slot, tz).toISOString() : undefined;
-      const r = await uploadVideo({ file: mp4, meta, privacy: up.privacy || 'private', publishAt, thumb, playlistId: prog.playlistId || up.playlistId, log });
+      // onay modu: Osman dinleyip onaylamadan yayına girmez (özel yüklenir, planlanmaz)
+      const publishAt = up.approval !== false ? undefined : slot ? nextLocalTime(slot, tz).toISOString() : undefined;
+      const r = await uploadVideo({ file: mp4, meta, privacy: up.approval !== false ? 'private' : (up.privacy || 'private'), publishAt, thumb, playlistId: prog.playlistId || up.playlistId, log });
       report.youtube = { ...r, publishAt }; report.steps.upload = t(); save();
       log(`🎉 YOUTUBE: ${r.url}${publishAt ? ' · yayın: ' + new Date(publishAt).toLocaleString('tr-TR', { timeZone: tz }) : ''}`);
     }

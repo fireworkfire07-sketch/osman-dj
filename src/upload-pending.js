@@ -36,12 +36,12 @@ const { nextLocalTime } = require('./time');
   };
   for (const s of pending) {
     const rep = JSON.parse(fs.readFileSync(path.join(DIR, s.folder, 'report.json'), 'utf8'));
-    const when = (cfg.upload && cfg.upload.privacy === 'public') || process.argv.includes('--now') ? undefined : nextSlot();
+    const when = (cfg.upload && cfg.upload.approval !== false) || (cfg.upload && cfg.upload.privacy === 'public') || process.argv.includes('--now') ? undefined : nextSlot();
     console.log(`\n#${String(s.no).padStart(4, '0')} "${s.name}" · kalite ${s.score}${when ? ' · yayın ' + when.toLocaleString('tr-TR', { timeZone: tz }) : ''}`);
     if (process.argv.includes('--dry')) continue;
     if (s.score < ((cfg.upload && cfg.upload.minScore) || 80)) { console.log('⏸ kalite düşük, atlandı'); continue; }
     try {
-      const r = await uploadVideo({ file: path.join(DIR, s.video), meta: rep.meta, privacy: (cfg.upload && cfg.upload.privacy) || 'private',
+      const r = await uploadVideo({ file: path.join(DIR, s.video), meta: rep.meta, privacy: (cfg.upload && cfg.upload.approval !== false) ? 'private' : ((cfg.upload && cfg.upload.privacy) || 'private'),
         publishAt: when && when.toISOString(), thumb: path.join(DIR, s.folder, 'kapak.jpg'), playlistId: cfg.upload && cfg.upload.playlistId, log: m => process.stdout.write('\r' + m + '   ') });
       updateEntry(s.no, { youtube: r.url, publishAt: when && when.toISOString() });
       console.log(`\n🎉 ${r.url}`);
