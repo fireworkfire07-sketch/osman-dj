@@ -1,0 +1,186 @@
+<!-- ================= GİRİŞ ================= -->
+<div id="ekGiris" class="ekran">
+  <div class="girisKutu">
+    <div class="logoBuyuk">🎤</div>
+    <h1>Osman Karaoke</h1>
+    <p>Kurulumda verilen giriş kodunu yaz.</p>
+    <input id="inKod" type="text" autocomplete="off" autocapitalize="off" placeholder="Giriş kodu" enterkeyhint="go">
+    <button id="btnGiris" class="dev">Gir</button>
+    <p id="girisHata" class="hataYazi"></p>
+  </div>
+</div>
+
+<!-- ================= ANA EKRAN ================= -->
+<div id="ekAna" class="ekran">
+  <header class="ust">
+    <div class="logo"><span class="logoMik">🎤</span><span>Osman <b>Karaoke</b></span></div>
+    <button id="btnAyar" class="yuvarlak" aria-label="Ayarlar">⚙️</button>
+  </header>
+
+  <section class="kart yapKart">
+    <h1>Hangi şarkıyı söylemek istersin?</h1>
+    <div class="girisSatir">
+      <input id="inKaynak" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"
+             placeholder="Link ya da şarkı adı">
+      <button id="btnYapistir" class="yapistir">📋 Yapıştır</button>
+    </div>
+    <button id="btnYap" class="dev"><span>🎤</span> KARAOKE YAP</button>
+    <label class="dosyaSec">📁 ya da telefondaki bir şarkıyı seç
+      <input id="inDosya" type="file" accept="audio/*,video/*,.mp3,.m4a,.wav,.flac,.ogg,.mp4,.mov">
+    </label>
+    <p class="ipucu">YouTube veya Spotify linki ya da sadece <b>“Tarkan Şımarık”</b> yazman yeter.</p>
+  </section>
+
+  <section id="isler"></section>
+
+  <section class="sarkilarBolum">
+    <h2>🎵 Şarkılarım</h2>
+    <div id="liste" class="izgara"></div>
+    <div id="bos" class="bos">
+      <div class="bosIkon">🎶</div>
+      Henüz şarkın yok.<br>Yukarıya bir link yapıştır, <b>KARAOKE YAP</b>'a bas!
+    </div>
+  </section>
+
+  <div id="ekleIpucu" class="ekleIpucu">
+    <span>📲 Uygulama gibi kullanmak için: <b>Paylaş</b> → <b>Ana Ekrana Ekle</b></span>
+    <button id="btnEkleKapat" aria-label="Kapat">✕</button>
+  </div>
+</div>
+
+<!-- ================= KARAOKE SAHNESİ ================= -->
+<div id="ekSahne" class="ekran">
+  <canvas id="cv" width="1080" height="1920"></canvas>
+
+  <div id="ustBar" class="ustBar">
+    <button id="btnGeri" class="yuvarlak koyu" aria-label="Geri">←</button>
+    <div class="sBaslik"><b id="sAd"></b><span id="sSanatci"></span></div>
+    <button id="btnSahneMenu" class="yuvarlak koyu" aria-label="Menü">⋯</button>
+  </div>
+
+  <div id="baslaKatman" class="katman">
+    <div class="baslaIc">
+      <div id="yukleniyor" class="yukleniyor"><div class="donen"></div><span id="yukYazi">Şarkı yükleniyor…</span></div>
+      <button id="btnBasla" class="baslaTus" hidden><span>▶</span></button>
+      <div id="baslaYazi" class="baslaYazi" hidden>BAŞLA</div>
+      <p class="baslaIpucu">🎧 Kulaklık takarsan çok daha iyi olur</p>
+    </div>
+  </div>
+
+  <div id="sonKatman" class="katman" hidden>
+    <div class="sonIc">
+      <div class="sonEmoji">🎉</div>
+      <h2>Harikaydın!</h2>
+      <div id="sonPuan" class="sonPuan"></div>
+      <div class="sonTuslar">
+        <button id="btnTekrar" class="dev">🔁 Tekrar söyle</button>
+        <button id="btnSonGeri" class="ikinci">🏠 Şarkılarım</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="altBar" class="altBar">
+    <div class="zamanSatir">
+      <span id="tSimdi">0:00</span>
+      <input id="seek" type="range" min="0" max="1000" value="0" aria-label="Şarkıda ilerle">
+      <span id="tToplam">0:00</span>
+    </div>
+    <div class="tuslar">
+      <button id="btnSarkici" class="t"><i>🗣️</i><span>Şarkıcı: Kapalı</span></button>
+      <button id="btnGeri10" class="t"><i>⏪</i><span>10 sn</span></button>
+      <button id="btnOynat" class="t oynat" aria-label="Oynat"><i id="icoOynat">▶</i></button>
+      <button id="btnIleri10" class="t"><i>⏩</i><span>10 sn</span></button>
+      <button id="btnMik" class="t"><i>🎙️</i><span>Mikrofon</span></button>
+    </div>
+    <div class="tuslar2">
+      <div class="kaydirmaGrup">
+        <button id="btnErken" class="kucukTus">Yazı erken</button>
+        <span id="ayarDeger">0.0 sn</span>
+        <button id="btnGec" class="kucukTus">Yazı geç</button>
+      </div>
+      <button id="btnKayit" class="kayitTus">🔴 Kaydet</button>
+    </div>
+  </div>
+
+  <div id="kayitBant" class="kayitBant" hidden>
+    <span class="kayitNokta"></span><span id="kayitSure">KAYIT 0:00</span>
+    <button id="btnKayitDur">⏹ Bitir</button>
+  </div>
+</div>
+
+<!-- ================= ALT SAYFALAR ================= -->
+<div id="perde" class="perde"></div>
+
+<div id="shAyar" class="sayfa">
+  <div class="sayfaTutac"></div>
+  <h2>⚙️ Ayarlar</h2>
+  <div class="ayarBlok">
+    <h3>Ses ayırma kalitesi</h3>
+    <label class="secenek"><input type="radio" name="kalite" value="normal"> <span><b>Normal</b> — hızlı, çoğu şarkı için yeter</span></label>
+    <label class="secenek"><input type="radio" name="kalite" value="super"> <span><b>Süper temiz</b> — 4 kat yavaş, en temiz müzik</span></label>
+  </div>
+  <div class="ayarBlok">
+    <h3>Kulaklık</h3>
+    <label class="secenek"><input type="checkbox" id="ayKulaklik"> <span>Kulaklıkla söylüyorum <small>(kendi sesimi duyayım, ses daha temiz kaydedilsin)</small></span></label>
+    <label class="secenek"><input type="checkbox" id="ayYanki"> <span>Sesime hafif yankı ekle</span></label>
+  </div>
+  <div class="ayarBlok">
+    <h3>Video kaydı</h3>
+    <label class="secenek"><input type="radio" name="ekran" value="oto"> <span><b>Otomatik</b> — telefonu nasıl tutuyorsan</span></label>
+    <label class="secenek"><input type="radio" name="ekran" value="yatay"> <span><b>Yatay</b> — YouTube videosu (1920×1080)</span></label>
+    <label class="secenek"><input type="radio" name="ekran" value="dikey"> <span><b>Dikey</b> — YouTube Shorts (1080×1920)</span></label>
+  </div>
+  <div class="ayarBlok">
+    <h3>YouTube çerezi <span id="cerezDurum" class="rozetKucuk"></span></h3>
+    <p class="aciklama">Sadece YouTube “robot” derse gerekir. Bilgisayarda YouTube'a girip “Get cookies.txt LOCALLY” eklentisiyle aldığın <b>cookies.txt</b> dosyasını seç.</p>
+    <div class="satir">
+      <label class="ikinci dosyaTus">📄 cookies.txt seç<input id="inCerez" type="file" accept=".txt,text/plain"></label>
+      <button id="btnCerezSil" class="ikinci">Kaldır</button>
+    </div>
+  </div>
+  <button class="dev kapatTus" data-kapat>Tamam</button>
+</div>
+
+<div id="shMenu" class="sayfa">
+  <div class="sayfaTutac"></div>
+  <h2 id="menuBaslik"></h2>
+  <div class="menuListe">
+    <button data-is="soyle">🎤 Söyle</button>
+    <button data-is="soz">📝 Sözleri düzelt</button>
+    <button data-is="indir">⬇️ Müziği indir (mp3)</button>
+    <button data-is="sil" class="tehlike">🗑️ Sil</button>
+    <button data-kapat class="ikinci">Vazgeç</button>
+  </div>
+</div>
+
+<div id="shSoz" class="sayfa">
+  <div class="sayfaTutac"></div>
+  <h2>📝 Sözleri düzelt</h2>
+  <div class="ayarBlok">
+    <h3>Şarkının doğru adı</h3>
+    <input id="inSozAd" type="text" placeholder="Şarkı adı">
+    <input id="inSozSanatci" type="text" placeholder="Sanatçı">
+    <button id="btnSozBul" class="dev">🔎 Sözleri bul</button>
+  </div>
+  <div class="ayarBlok">
+    <h3>ya da sözleri kendin yapıştır</h3>
+    <textarea id="inSozMetin" rows="7" placeholder="Her satır alt alta olsun. Şarkıcının sesine göre otomatik yerleştiririm."></textarea>
+    <button id="btnSozYerlestir" class="dev">✨ Yerleştir</button>
+  </div>
+  <p id="sozMesaj" class="aciklama"></p>
+  <button class="ikinci kapatTus" data-kapat>Kapat</button>
+</div>
+
+<div id="shKayit" class="sayfa">
+  <div class="sayfaTutac"></div>
+  <h2>🎬 Videon hazır!</h2>
+  <div id="kayitOnizleme" class="kayitOnizleme"></div>
+  <div class="satir">
+    <button id="btnPaylas" class="dev">📤 Paylaş / Kaydet</button>
+    <a id="lnkIndir" class="ikinci tusLink" download>⬇️ İndir</a>
+  </div>
+  <p id="kayitBilgi" class="aciklama"></p>
+  <button class="ikinci kapatTus" data-kapat>Kapat</button>
+</div>
+
+<div id="toast" class="toast"></div>

@@ -1,0 +1,50 @@
+# Osman Karaoke — kur.sh bu dosyayı kullanır. Ayarlar .env dosyasındadır (KOD, ALAN, COMPOSE_PROFILES).
+services:
+  karaoke:
+    build:
+      context: ./sunucu
+      args:
+        GUNCEL: ${GUNCEL:-0}
+    image: osman-karaoke:latest
+    restart: unless-stopped
+    environment:
+      KOD: ${KOD:?KOD gerekli - kur.sh ile kur}
+      POT_URL: http://pot:4416
+      MAX_DAKIKA: ${MAX_DAKIKA:-15}
+    volumes:
+      - ./veri:/veri
+      - hf_cache:/opt/hf
+
+  # YouTube'un "robot musun" kontrolünü azaltan yardımcı (PO token)
+  pot:
+    image: brainicism/bgutil-ytdlp-pot-provider:2.0.2
+    restart: unless-stopped
+    init: true
+    profiles: ["pot"]
+
+  # HTTPS (mikrofon için şart): ücretsiz sertifika, adres = <ip>.sslip.io
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    profiles: ["https"]
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      ALAN: ${ALAN:-localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+  # 80/443 doluysa yedek: Cloudflare hızlı tüneli (adres yeniden başlatınca değişir)
+  tunel:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    profiles: ["tunel"]
+    command: tunnel --no-autoupdate --url http://karaoke:8000
+
+volumes:
+  hf_cache:
+  caddy_data:
+  caddy_config:

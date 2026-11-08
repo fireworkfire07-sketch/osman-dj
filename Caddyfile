@@ -1,0 +1,4 @@
+{$ALAN} {
+	encode zstd gzip
+	reverse_proxy karaoke:8000
+}

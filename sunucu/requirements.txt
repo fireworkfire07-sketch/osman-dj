@@ -1,0 +1,8 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9
+numpy>=1.26
+demucs==4.1.0
+yt-dlp[default]>=2026.10.26
+bgutil-ytdlp-pot-provider==2.0.2
+deno>=2.5
