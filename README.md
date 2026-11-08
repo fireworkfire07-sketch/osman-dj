@@ -11,11 +11,11 @@
 
 Gerekenler: Ubuntu veya Debian bir VPS, en az 2 GB RAM (az ise kurulum takas alanı ekler), 8 GB boş disk ve açık 80/443 portları.
 
-1. Bu repo **herkese açık (public)** olmalı. Repoda şarkı yok; şarkılar sadece senin sunucunda durur.
+1. Kod `osman-dj` reposunun **karaoke** dalında durur. Repo herkese açık (public) olmalı. Repoda şarkı yok; şarkılar sadece senin sunucunda durur.
 2. VPS'e bağlan ve şunu yapıştır:
 
    ```bash
-   curl -fsSL https://raw.githubusercontent.com/fireworkfire07-sketch/osman-karaoke/main/kur.sh | sudo bash
+   curl -fsSL https://raw.githubusercontent.com/fireworkfire07-sketch/osman-dj/karaoke/kur.sh | sudo bash
    ```
 
 3. Sonunda çıkan linki telefonunda aç. iPhone'da **Paylaş → Ana Ekrana Ekle** dersen uygulama gibi açılır.

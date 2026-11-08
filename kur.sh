@@ -3,15 +3,15 @@
 #  OSMAN KARAOKE — tek komutla kurulum / güncelleme (Ubuntu / Debian VPS)
 #
 #  Kur ya da güncelle:
-#    curl -fsSL https://raw.githubusercontent.com/fireworkfire07-sketch/osman-karaoke/main/kur.sh | sudo bash
+#    curl -fsSL https://raw.githubusercontent.com/fireworkfire07-sketch/osman-dj/karaoke/kur.sh | sudo bash
 #  Diğer komutlar (kurulumdan sonra):
 #    sudo bash /opt/osman-karaoke/kur.sh bilgi     # telefon linkini ve kodu tekrar göster
 #    sudo bash /opt/osman-karaoke/kur.sh log       # canlı kayıtlar
 #    sudo bash /opt/osman-karaoke/kur.sh durdur    # kapat
 # =====================================================================
 set -euo pipefail
-REPO="${REPO:-fireworkfire07-sketch/osman-karaoke}"
-DAL="${DAL:-main}"
+REPO="${REPO:-fireworkfire07-sketch/osman-dj}"
+DAL="${DAL:-karaoke}"
 DIZIN="${DIZIN:-/opt/osman-karaoke}"
 KOMUT="${1:-kur}"
 
