@@ -9,10 +9,10 @@
 
 ## Kurulum (bir kere)
 
-Gerekenler: Ubuntu veya Debian bir VPS, en az 2 GB RAM (az ise kurulum takas alanı ekler), 8 GB boş disk ve açık 80/443 portları.
+Nerede çalışır: Ubuntu/Debian bir VPS **ya da Windows bilgisayardaki Ubuntu (WSL)**. En az 4 GB RAM ve 8 GB boş disk gerekir. WSL'de telefondan erişim için Cloudflare tüneli kendiliğinden kurulur, port açmaya gerek yoktur; bilgisayar açık kaldığı sürece çalışır.
 
 1. Kod `osman-dj` reposunun **karaoke** dalında durur. Repo herkese açık (public) olmalı. Repoda şarkı yok; şarkılar sadece senin sunucunda durur.
-2. VPS'e bağlan ve şunu yapıştır:
+2. Ubuntu terminaline şu satırı **bir kere** yapıştır (şifre sorarsa Ubuntu şifreni yaz):
 
    ```bash
    curl -fsSL https://raw.githubusercontent.com/fireworkfire07-sketch/osman-dj/karaoke/kur.sh | sudo bash
@@ -20,7 +20,7 @@ Gerekenler: Ubuntu veya Debian bir VPS, en az 2 GB RAM (az ise kurulum takas ala
 
 3. Sonunda çıkan linki telefonunda aç. iPhone'da **Paylaş → Ana Ekrana Ekle** dersen uygulama gibi açılır.
 
-Güncellemek için aynı komutu tekrar çalıştırman yeter. Şarkıların ve ayarların silinmez.
+Kurulumdan sonra terminalde `karaoke` yazman yeter: linki gösterir, kapalıysa açar. Güncelleme şarkılarını ve ayarlarını silmez.
 
 ## Kullanım
 
@@ -38,9 +38,10 @@ Güncellemek için aynı komutu tekrar çalıştırman yeter. Şarkıların ve a
 | Sorun | Çözüm |
 |---|---|
 | “YouTube sunucuyu robot sandı” | Ayarlar → **YouTube çerezi** ekle (cookies.txt) ya da şarkıyı telefondan dosya olarak seç |
-| Linki ya da kodu unuttum | `sudo bash /opt/osman-karaoke/kur.sh bilgi` |
-| Neler oluyor bakmak istiyorum | `sudo bash /opt/osman-karaoke/kur.sh log` |
-| Kapatmak istiyorum | `sudo bash /opt/osman-karaoke/kur.sh durdur` |
+| Linki ya da kodu unuttum / bilgisayarı yeniden açtım | `karaoke` |
+| Neler oluyor bakmak istiyorum | `karaoke log` |
+| Kapatmak istiyorum | `karaoke durdur` |
+| Güncellemek istiyorum | `karaoke guncelle` |
 
 ## Nasıl çalışıyor
 
