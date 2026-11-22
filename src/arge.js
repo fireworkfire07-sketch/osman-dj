@@ -90,7 +90,8 @@ async function marketResearch(b, log) {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) { log('🔎 Piyasa araştırması: ANTHROPIC_API_KEY yok, atlandı (ücretli özellik, isteğe bağlı).'); return null; }
   const cur = Object.fromEntries(Object.entries(B.planOpts(b).bpm));
-  const prompt = `Sen bir elektronik müzik A&R araştırmacısısın. Web'de bu haftanın güncel verilerini araştır (Beatport top listeleri, 1001Tracklists, büyük festival setleri; psytrance, melodic/peak-time techno, organic/afro/deep house, etnik-elektronik/Anadolu füzyon).
+  const prompt = require('./ilke') + `
+Sen bir elektronik müzik A&R araştırmacısısın. Web'de bu haftanın güncel verilerini araştır (Beatport top listeleri, 1001Tracklists, büyük festival setleri; psytrance, melodic/peak-time techno, organic/afro/deep house, etnik-elektronik/Anadolu füzyon).
 Bizim DJ'imiz 70'ler Anadolu rock'ını (Cem Karaca, Barış Manço, Erkin Koray ruhu) funk/disko/psikedelik groove ile güncelleyen, Hey! Douglas tarzına yakın; Anadolu enstrümanlarıyla (bağlama, ney, zurna, darbuka, def, didgeridoo) 2-2,5 saatlik setler yapıyor. Tür anahtarları ve şu anki tempolarımız: ${JSON.stringify(cur)}.
 Sadece JSON döndür, başka metin yazma:
 {"bpm":{"afunk":sayı,"psy":sayı,"tech":sayı,"arock":sayı,"dh":sayı,"neset":sayı,"semah":sayı,"saman":sayı},"transLen":32-128 arası bar*4 adım (şu an ${b.transLen}),"klasikEvery":2-6,"trendler":["kısa madde", "..."],"oneriler":["DJ'in uygulayabileceği somut ses/yapı önerisi","..."]}
