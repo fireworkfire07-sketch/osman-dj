@@ -14,8 +14,26 @@ async function accessToken() {
   return j.access_token;
 }
 
+// Yanlış kanala yükleme kilidi: token'ın bağlı olduğu kanal config.json'daki "channel" değilse yükleme yapılmaz.
+// (Kasım 2026'da setler yanlışlıkla Bitkilerin Gizli Tarihi kanalına gitti.)
+let checkedChannel = null;
+async function assertChannel(tok) {
+  if (checkedChannel || process.env.YT_SKIP_CHANNEL_CHECK === '1') return;
+  let want = '';
+  try { want = (JSON.parse(fs.readFileSync(require('path').join(__dirname, '..', 'config.json'), 'utf8')).channel || '').trim(); } catch {}
+  if (!want) return;
+  const r = await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true', { headers: { authorization: 'Bearer ' + tok } });
+  const j = await r.json().catch(() => ({}));
+  const got = (j.items && j.items[0] && j.items[0].snippet.title) || '(kanal yok)';
+  if (got.toLocaleLowerCase('tr') !== want.toLocaleLowerCase('tr')) {
+    throw new Error(`yanlış kanal: token "${got}" kanalına bağlı, "${want}" olmalı. Düzeltmek için: osmandj bagla → ${want} kanalını seç. Yükleme yapılmadı.`);
+  }
+  checkedChannel = got;
+}
+
 async function uploadVideo({ file, meta, privacy = 'private', publishAt, thumb, playlistId, log = console.log }) {
   const tok = await accessToken();
+  await assertChannel(tok);
   const size = fs.statSync(file).size;
   const status = { privacyStatus: publishAt ? 'private' : privacy, selfDeclaredMadeForKids: false };
   if (publishAt) status.publishAt = publishAt; // planlı yayın: belirtilen saatte otomatik herkese açılır
